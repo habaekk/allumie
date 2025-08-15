@@ -697,7 +697,7 @@ export default function MealsComponent() {
                             value={food.name}
                             onChange={(value) => updateFoodItem(index, 'name', value)}
                             onFoodSelect={(selectedFood) => handleFoodSelect(index, selectedFood)}
-                            placeholder="예: 계란말이"
+                            placeholder="예: 달걀말이"
                             label="음식명"
                           />
                         </div>

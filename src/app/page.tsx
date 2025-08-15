@@ -62,6 +62,10 @@ export default function HomePage() {
   //   { label: '활동량', value: '8,432', change: '+1,200', trend: 'up' },
   // ];
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleTabClick = (tab: Tab) => {
     // Chat 탭을 클릭했을 때는 별도 페이지로 라우팅
     if (tab.id === 'chat') {
@@ -71,6 +75,9 @@ export default function HomePage() {
     
     setActiveTab(tab.id);
     setCurrentComponent(tab.id);
+    
+    // 탭 전환 시 스크롤을 최상위로 이동
+    scrollToTop();
   };
 
   const handleQuickActionClick = (action: QuickAction) => {
@@ -82,6 +89,9 @@ export default function HomePage() {
     
     setActiveTab(action.path.replace('/', '') || 'home');
     setCurrentComponent(action.path.replace('/', '') || 'home');
+    
+    // Quick Action 클릭 시 스크롤을 최상위로 이동
+    scrollToTop();
   };
 
   // 컴포넌트 렌더링 함수

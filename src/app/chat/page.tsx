@@ -52,6 +52,10 @@ export default function ChatPage() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const router = useRouter();
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -209,7 +213,10 @@ export default function ChatPage() {
         className="bg-white shadow-sm border-b border-gray-100 px-4 py-2"
       >
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" className="p-2" onClick={() => router.back()}>
+          <Button variant="ghost" size="sm" className="p-2" onClick={() => {
+            scrollToTop();
+            router.back();
+          }}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
