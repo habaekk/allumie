@@ -4,23 +4,19 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { 
-  MessageCircle, 
   Send, 
   Bot, 
   User, 
   ArrowLeft,
   Plus,
   Brain,
-  Heart,
   Activity,
   UtensilsCrossed,
   TrendingUp,
-  Lightbulb,
   Mic,
   Paperclip
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
 interface Message {
@@ -28,7 +24,14 @@ interface Message {
   type: 'user' | 'bot';
   content: string;
   timestamp: Date;
-  data?: any;
+  data?: Record<string, unknown>;
+}
+
+interface QuickAction {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  textColor: string;
 }
 
 export default function ChatPage() {
@@ -64,7 +67,7 @@ export default function ChatPage() {
     lastMedication: '1시간 전'
   };
 
-  const quickActions = [
+  const quickActions: QuickAction[] = [
     { title: '건강 요약', icon: TrendingUp, color: 'bg-blue-100', textColor: 'text-blue-600' },
     { title: '식단 분석', icon: UtensilsCrossed, color: 'bg-orange-100', textColor: 'text-orange-600' },
     { title: '운동 추천', icon: Activity, color: 'bg-green-100', textColor: 'text-green-600' },

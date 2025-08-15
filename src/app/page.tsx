@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { 
@@ -11,17 +10,31 @@ import {
   MessageCircle,
   Plus,
   TrendingUp,
-  Calendar,
   Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+interface Tab {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  path: string;
+}
+
+interface QuickAction {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  textColor: string;
+  path: string;
+}
+
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState('home');
   const router = useRouter();
 
-  const tabs = [
+  const tabs: Tab[] = [
     { id: 'meals', label: 'Meals & Meds', icon: UtensilsCrossed, color: 'text-orange-500', path: '/meals' },
     { id: 'health', label: 'Health', icon: Heart, color: 'text-red-500', path: '/health' },
     { id: 'home', label: 'Home', icon: Home, color: 'text-blue-500', path: '/' },
@@ -29,7 +42,7 @@ export default function HomePage() {
     { id: 'chat', label: 'Chat', icon: MessageCircle, color: 'text-green-500', path: '/chat' },
   ];
 
-  const quickActions = [
+  const quickActions: QuickAction[] = [
     { title: '오늘의 식단', icon: UtensilsCrossed, color: 'bg-orange-100', textColor: 'text-orange-600', path: '/meals' },
     { title: '건강 체크', icon: Heart, color: 'bg-red-100', textColor: 'text-red-600', path: '/health' },
     { title: '감정 기록', icon: Brain, color: 'bg-purple-100', textColor: 'text-purple-600', path: '/emotions' },
@@ -43,13 +56,13 @@ export default function HomePage() {
     { label: '활동량', value: '8,432', change: '+1,200', trend: 'up' },
   ];
 
-  const handleTabClick = (tab: any) => {
+  const handleTabClick = (tab: Tab) => {
     if (tab.path !== '/') {
       router.push(tab.path);
     }
   };
 
-  const handleQuickActionClick = (action: any) => {
+  const handleQuickActionClick = (action: QuickAction) => {
     router.push(action.path);
   };
 
@@ -197,12 +210,12 @@ export default function HomePage() {
               whileTap={{ scale: 0.9 }}
               onClick={() => handleTabClick(tab)}
               className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                activeTab === tab.id 
+                tab.id === 'home' 
                   ? 'bg-blue-50 text-blue-600' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <tab.icon className={`w-6 h-6 mb-1 ${activeTab === tab.id ? 'text-blue-600' : tab.color}`} />
+              <tab.icon className={`w-6 h-6 mb-1 ${tab.id === 'home' ? 'text-blue-600' : tab.color}`} />
               <span className="text-xs font-medium whitespace-nowrap text-center min-w-0 truncate">{tab.label}</span>
             </motion.button>
           ))}

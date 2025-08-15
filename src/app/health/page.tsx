@@ -10,10 +10,7 @@ import {
   Scale, 
   Plus, 
   TrendingUp,
-  Calendar,
-  Target,
   Zap,
-  Droplets,
   Eye,
   Home,
   Brain,
@@ -24,12 +21,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 
+interface Tab {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  path: string;
+}
+
 export default function HealthPage() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [activeNavTab, setActiveNavTab] = useState('health');
   const router = useRouter();
 
-  const tabs = [
+  const tabs: Tab[] = [
     { id: 'meals', label: 'Meals & Meds', icon: UtensilsCrossed, color: 'text-orange-500', path: '/meals' },
     { id: 'health', label: 'Health', icon: Heart, color: 'text-red-500', path: '/health' },
     { id: 'home', label: 'Home', icon: Home, color: 'text-blue-500', path: '/' },
@@ -85,7 +89,7 @@ export default function HealthPage() {
     { name: '각성', value: 5, color: '#dbeafe' },
   ];
 
-  const handleTabClick = (tab: any) => {
+  const handleTabClick = (tab: Tab) => {
     if (tab.path !== '/health') {
       router.push(tab.path);
     }
@@ -493,12 +497,12 @@ export default function HealthPage() {
               whileTap={{ scale: 0.9 }}
               onClick={() => handleTabClick(tab)}
               className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                activeNavTab === tab.id 
+                tab.id === 'health' 
                   ? 'bg-blue-50 text-blue-600' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <tab.icon className={`w-6 h-6 mb-1 ${activeNavTab === tab.id ? 'text-blue-600' : tab.color}`} />
+              <tab.icon className={`w-6 h-6 mb-1 ${tab.id === 'health' ? 'text-blue-600' : tab.color}`} />
               <span className="text-xs font-medium whitespace-nowrap text-center min-w-0 truncate">{tab.label}</span>
             </motion.button>
           ))}
