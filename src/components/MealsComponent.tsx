@@ -40,6 +40,16 @@ interface NewMealForm {
   foods: NewFoodItem[];
 }
 
+// 약물 데이터 인터페이스
+interface MedicationItem {
+  id: string;
+  name: string;
+  time: string;
+  dosage: string;
+  taken: boolean;
+  type: string;
+}
+
 export default function MealsComponent() {
   const [activeTab, setActiveTab] = useState('meals');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -47,6 +57,57 @@ export default function MealsComponent() {
     category: 'Breakfast',
     foods: [{ name: '', calories: 0, protein: 0, carbohydrates: 0, fat: 0, fiber: 0 }]
   });
+  
+  // 약물 데이터 상태 관리
+  const [medicationData, setMedicationData] = useState<MedicationItem[]>([
+    { id: '1', name: '혈압약', time: '08:00', dosage: '1정', taken: true, type: 'morning' },
+    { id: '2', name: '당뇨약', time: '12:00', dosage: '1정', taken: true, type: 'lunch' },
+    { id: '3', name: '비타민D', time: '19:00', dosage: '1정', taken: false, type: 'dinner' },
+    { id: '4', name: '오메가3', time: '21:00', dosage: '1정', taken: false, type: 'bedtime' },
+  ]);
+  
+  // 토스트 메시지 상태
+  const [toast, setToast] = useState<{show: boolean, message: string, type: 'success' | 'info'}>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+  
+  // 토스트 메시지 표시 함수
+  const showToast = (message: string, type: 'success' | 'info' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }));
+    }, 3000);
+  };
+
+  // 약물 복용 상태 전환 기능
+  const toggleMedicationStatus = (medicationId: string) => {
+    const medication = medicationData.find(med => med.id === medicationId);
+    if (!medication) return;
+    
+    setMedicationData(prev => 
+      prev.map(med => 
+        med.id === medicationId 
+          ? { ...med, taken: !med.taken }
+          : med
+      )
+    );
+    
+    // 토스트 메시지 표시
+    if (medication.taken) {
+      showToast(`${medication.name} 복용을 취소했습니다.`, 'info');
+    } else {
+      showToast(`${medication.name} 복용 완료했습니다!`, 'success');
+    }
+  };
+  
+  // 투약 현황 계산
+  const medicationStats = {
+    taken: medicationData.filter(med => med.taken).length,
+    total: medicationData.length,
+    percentage: Math.round((medicationData.filter(med => med.taken).length / medicationData.length) * 100)
+  };
   
   // 삭제 기능
   const handleDeleteMeal = (mealId: string, mealName: string) => {
@@ -188,12 +249,7 @@ export default function MealsComponent() {
     }
   }
 
-  const medicationData = [
-    { name: '혈압약', time: '08:00', dosage: '1정', taken: true, type: 'morning' },
-    { name: '당뇨약', time: '12:00', dosage: '1정', taken: true, type: 'lunch' },
-    { name: '비타민D', time: '19:00', dosage: '1정', taken: false, type: 'dinner' },
-    { name: '오메가3', time: '21:00', dosage: '1정', taken: false, type: 'bedtime' },
-  ];
+
 
   // 영양소 달성률 차트 데이터 (실제 데이터 기반)
   const defaultGoals: Nutrition = {
@@ -531,7 +587,13 @@ export default function MealsComponent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bg-gradient-to-r from-red-500 to-pink-500 text-white">
+              <Card className={`text-white transition-all duration-500 ${
+                medicationStats.percentage >= 75 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                  : medicationStats.percentage >= 50 
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
+                  : 'bg-gradient-to-r from-red-500 to-pink-500'
+              }`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">투약 현황</h3>
@@ -539,8 +601,8 @@ export default function MealsComponent() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold">2/4</div>
-                      <div className="text-red-100 text-sm">복용 완료</div>
+                      <div className="text-2xl font-bold">{medicationStats.taken}/{medicationStats.total}</div>
+                      <div className="text-white text-opacity-80 text-sm">복용 완료</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold">50%</div>
@@ -567,14 +629,19 @@ export default function MealsComponent() {
               <div className="space-y-3">
                 {medicationData.map((med, index) => (
                   <motion.div
-                    key={med.name}
+                    key={med.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <Card className={`hover:shadow-md transition-shadow ${
-                      med.taken ? 'bg-green-50 border-green-200' : ''
-                    }`}>
+                    <Card 
+                      className={`hover:shadow-md transition-all duration-300 cursor-pointer ${
+                        med.taken ? 'bg-green-50 border-green-200' : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => toggleMedicationStatus(med.id)}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -697,7 +764,7 @@ export default function MealsComponent() {
                             value={food.name}
                             onChange={(value) => updateFoodItem(index, 'name', value)}
                             onFoodSelect={(selectedFood) => handleFoodSelect(index, selectedFood)}
-                            placeholder="예: 달걀말이"
+                            placeholder="예: 계란말이"
                             label="음식명"
                           />
                         </div>
@@ -806,6 +873,31 @@ export default function MealsComponent() {
             </div>
           </motion.div>
         </div>
+      )}
+      
+      {/* 토스트 메시지 */}
+      {toast.show && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50"
+        >
+          <div className={`px-4 py-3 rounded-lg shadow-lg ${
+            toast.type === 'success' 
+              ? 'bg-green-500 text-white' 
+              : 'bg-blue-500 text-white'
+          }`}>
+            <div className="flex items-center gap-2">
+              {toast.type === 'success' ? (
+                <span className="text-lg">✅</span>
+              ) : (
+                <span className="text-lg">ℹ️</span>
+              )}
+              <span className="font-medium">{toast.message}</span>
+            </div>
+          </div>
+        </motion.div>
       )}
     </div>
   );
