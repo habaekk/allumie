@@ -6,7 +6,8 @@ import {
   UtensilsCrossed, 
   Pill, 
   Plus, 
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,13 @@ import { Nutrition } from '@/lib/type/meal/nutrition';
 
 export default function MealsComponent() {
   const [activeTab, setActiveTab] = useState('meals');
+  
+  // 삭제 기능
+  const handleDeleteMeal = (mealId: string, mealName: string) => {
+    if (window.confirm(`"${mealName}" 식단을 삭제하시겠습니까?`)) {
+      deleteMeal(mealId);
+    }
+  };
 
   // 오늘 날짜
   const today = new Date().toISOString().split('T')[0];
@@ -28,6 +36,7 @@ export default function MealsComponent() {
   const allMeals = useMealStore((state) => state.meals);
   const nutritionGoals = useMealStore((state) => state.nutritionGoals);
   const addMeal = useMealStore((state) => state.addMeal);
+  const deleteMeal = useMealStore((state) => state.deleteMeal);
   
   // 오늘의 식사들
   const todayMeals = allMeals.filter((meal) => {
@@ -342,22 +351,36 @@ export default function MealsComponent() {
                               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
                                 <Clock className="w-5 h-5 text-orange-600" />
                               </div>
-                                                          <div>
-                              <div className="font-medium text-gray-900">
-                                {MEAL_TIME_LABELS[meal.category as MealCategory]}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {meal.foods?.map((food: Food) => food.name).join(', ') || '음식 정보 없음'}
+                              <div>
+                                <div className="font-medium text-gray-900">
+                                  {MEAL_TIME_LABELS[meal.category as MealCategory]}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {meal.foods?.map((food: Food) => food.name).join(', ') || '음식 정보 없음'}
+                                </div>
                               </div>
                             </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-semibold text-gray-900">
-                                {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).calories)} kcal
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <div className="font-semibold text-gray-900">
+                                  {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).calories)} kcal
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  P: {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).protein)}g C: {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).carbohydrates)}g F: {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).fat)}g
+                                </div>
                               </div>
-                              <div className="text-xs text-gray-500">
-                                P: {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).protein)}g C: {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).carbohydrates)}g F: {Math.round(NutritionCalculator.sumNutrition(meal.foods || []).fat)}g
-                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeleteMeal(
+                                  meal.id, 
+                                  MEAL_TIME_LABELS[meal.category as MealCategory]
+                                )}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2"
+                                title="식단 삭제"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
                         </CardContent>
