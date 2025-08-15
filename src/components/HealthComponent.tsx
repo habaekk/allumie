@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { 
   Heart, 
   Activity, 
@@ -21,25 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 
-interface Tab {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  path: string;
-}
-
-export default function HealthPage() {
+export default function HealthComponent() {
   const [activeTab, setActiveTab] = useState('overview');
-  const router = useRouter();
-
-  const tabs: Tab[] = [
-    { id: 'meals', label: 'Meals & Meds', icon: UtensilsCrossed, color: 'text-orange-500', path: '/meals' },
-    { id: 'health', label: 'Health', icon: Heart, color: 'text-red-500', path: '/health' },
-    { id: 'home', label: 'Home', icon: Home, color: 'text-blue-500', path: '/' },
-    { id: 'emotions', label: 'Emotions', icon: Brain, color: 'text-purple-500', path: '/emotions' },
-    { id: 'chat', label: 'Chat', icon: MessageCircle, color: 'text-green-500', path: '/chat' },
-  ];
 
   const healthMetrics = [
     { name: '체중', value: '65.2kg', change: '+0.3kg', trend: 'up', icon: Scale, color: 'text-blue-500', bgColor: 'bg-blue-100' },
@@ -88,12 +70,6 @@ export default function HealthPage() {
     { name: 'REM 수면', value: 20, color: '#93c5fd' },
     { name: '각성', value: 5, color: '#dbeafe' },
   ];
-
-  const handleTabClick = (tab: Tab) => {
-    if (tab.path !== '/health') {
-      router.push(tab.path);
-    }
-  };
 
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-br from-red-50 via-white to-pink-50">
@@ -481,33 +457,6 @@ export default function HealthPage() {
           </>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <motion.div 
-        initial={{ opacity: 0, y: 100 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0 }}
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2"
-      >
-        <div className="flex items-center">
-          {tabs.map((tab) => (
-            <motion.button
-              key={tab.id}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                tab.id === 'health' 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <tab.icon className={`w-6 h-6 mb-1 ${tab.id === 'health' ? 'text-blue-600' : tab.color}`} />
-              <span className="text-xs font-medium whitespace-nowrap text-center min-w-0 truncate">{tab.label}</span>
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
 
       {/* Floating Action Button */}
       <motion.div

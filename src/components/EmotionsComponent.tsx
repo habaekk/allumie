@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { 
   Brain, 
   Smile, 
@@ -20,26 +19,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
-interface Tab {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  path: string;
-}
-
-export default function EmotionsPage() {
+export default function EmotionsComponent() {
   const [activeTab, setActiveTab] = useState('mood');
   const [selectedMood, setSelectedMood] = useState('');
-  const router = useRouter();
-
-  const tabs: Tab[] = [
-    { id: 'meals', label: 'Meals & Meds', icon: UtensilsCrossed, color: 'text-orange-500', path: '/meals' },
-    { id: 'health', label: 'Health', icon: Heart, color: 'text-red-500', path: '/health' },
-    { id: 'home', label: 'Home', icon: Home, color: 'text-blue-500', path: '/' },
-    { id: 'emotions', label: 'Emotions', icon: Brain, color: 'text-purple-500', path: '/emotions' },
-    { id: 'chat', label: 'Chat', icon: MessageCircle, color: 'text-green-500', path: '/chat' },
-  ];
 
   const moodData = [
     { day: '월', mood: 8, energy: 7, stress: 3 },
@@ -100,12 +82,6 @@ export default function EmotionsPage() {
     { name: '슬픔', value: 7, color: '#3b82f6' },
     { name: '화남', value: 3, color: '#ef4444' },
   ];
-
-  const handleTabClick = (tab: Tab) => {
-    if (tab.path !== '/emotions') {
-      router.push(tab.path);
-    }
-  };
 
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
@@ -456,33 +432,6 @@ export default function EmotionsPage() {
           </>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <motion.div 
-        initial={{ opacity: 0, y: 100 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0 }}
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2"
-      >
-        <div className="flex items-center">
-          {tabs.map((tab) => (
-            <motion.button
-              key={tab.id}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                activeTab === tab.id 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <tab.icon className={`w-6 h-6 mb-1 ${activeTab === tab.id ? 'text-blue-600' : tab.color}`} />
-              <span className="text-xs font-medium whitespace-nowrap text-center min-w-0 truncate">{tab.label}</span>
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
 
       {/* Floating Action Button */}
       <motion.div

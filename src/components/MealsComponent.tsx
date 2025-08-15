@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { 
   UtensilsCrossed, 
   Pill, 
@@ -18,25 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-interface Tab {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  path: string;
-}
-
-export default function MealsPage() {
+export default function MealsComponent() {
   const [activeTab, setActiveTab] = useState('meals');
-  const router = useRouter();
-
-  const tabs: Tab[] = [
-    { id: 'meals', label: 'Meals & Meds', icon: UtensilsCrossed, color: 'text-orange-500', path: '/meals' },
-    { id: 'health', label: 'Health', icon: Heart, color: 'text-red-500', path: '/health' },
-    { id: 'home', label: 'Home', icon: Home, color: 'text-blue-500', path: '/' },
-    { id: 'emotions', label: 'Emotions', icon: Brain, color: 'text-purple-500', path: '/emotions' },
-    { id: 'chat', label: 'Chat', icon: MessageCircle, color: 'text-green-500', path: '/chat' },
-  ];
 
   const mealData = [
     { time: '08:00', meal: '아침', food: '오트밀 + 바나나', calories: 320, protein: 12, carbs: 58, fat: 8 },
@@ -68,12 +50,6 @@ export default function MealsPage() {
     { day: '토', calories: 2100, protein: 110, carbs: 220, fat: 75 },
     { day: '일', calories: 1750, protein: 90, carbs: 165, fat: 60 },
   ];
-
-  const handleTabClick = (tab: Tab) => {
-    if (tab.path !== '/meals') {
-      router.push(tab.path);
-    }
-  };
 
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-br from-orange-50 via-white to-yellow-50">
@@ -341,33 +317,6 @@ export default function MealsPage() {
           </>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <motion.div 
-        initial={{ opacity: 0, y: 100 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0 }}
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2"
-      >
-        <div className="flex items-center">
-          {tabs.map((tab) => (
-            <motion.button
-              key={tab.id}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                activeTab === tab.id 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <tab.icon className={`w-6 h-6 mb-1 ${activeTab === tab.id ? 'text-blue-600' : tab.color}`} />
-              <span className="text-xs font-medium whitespace-nowrap text-center min-w-0 truncate">{tab.label}</span>
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
 
       {/* Floating Action Button */}
       <motion.div

@@ -1,7 +1,7 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { 
   UtensilsCrossed, 
   Heart, 
@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import EmotionsComponent from '@/components/EmotionsComponent';
+import HealthComponent from '@/components/HealthComponent';
+import MealsComponent from '@/components/MealsComponent';
 
 interface Tab {
   id: string;
@@ -32,7 +35,8 @@ interface QuickAction {
 }
 
 export default function HomePage() {
-  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('home');
+  const [currentComponent, setCurrentComponent] = useState('home');
 
   const tabs: Tab[] = [
     { id: 'meals', label: 'Meals & Meds', icon: UtensilsCrossed, color: 'text-orange-500', path: '/meals' },
@@ -57,34 +61,44 @@ export default function HomePage() {
   ];
 
   const handleTabClick = (tab: Tab) => {
-    if (tab.path !== '/') {
-      router.push(tab.path);
-    }
+    setActiveTab(tab.id);
+    setCurrentComponent(tab.id);
   };
 
   const handleQuickActionClick = (action: QuickAction) => {
-    router.push(action.path);
+    setActiveTab(action.path.replace('/', '') || 'home');
+    setCurrentComponent(action.path.replace('/', '') || 'home');
   };
 
-  return (
-    <div className="min-h-screen pb-20 bg-gradient-to-br from-blue-50 via-white to-green-50">
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-sm border-b border-gray-100 px-4 py-6"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">안녕하세요! 👋</h1>
-            <p className="text-gray-600">오늘도 건강한 하루 되세요</p>
+  // 컴포넌트 렌더링 함수
+  const renderComponent = () => {
+    switch (currentComponent) {
+      case 'emotions':
+        return <EmotionsComponent />;
+      case 'health':
+        return <HealthComponent />;
+      case 'meals':
+        return <MealsComponent />;
+      case 'chat':
+        return (
+          <div className="min-h-screen pb-20 bg-gradient-to-br from-green-50 via-white to-blue-50">
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">AI Health Chat</h1>
+                <p className="text-gray-600">건강 데이터 기반 AI 상담</p>
+                <p className="text-sm text-gray-500 mt-2">(Chat 기능은 별도 구현 예정)</p>
+              </div>
+            </div>
           </div>
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-lg">A</span>
-          </div>
-        </div>
-      </motion.div>
+        );
+      default:
+        return renderHomeContent();
+    }
+  };
 
+  // 홈 컨텐츠 렌더링 함수
+  const renderHomeContent = () => (
+    <>
       {/* Main Content */}
       <div className="px-4 py-6 space-y-6">
         {/* Quick Actions */}
@@ -195,6 +209,45 @@ export default function HomePage() {
         </motion.div>
       </div>
 
+      {/* Floating Action Button */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.8, type: "spring" }}
+        className="fixed bottom-24 right-6"
+      >
+        <Button 
+          size="lg" 
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </motion.div>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen pb-20 bg-gradient-to-br from-blue-50 via-white to-green-50">
+      {/* Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white shadow-sm border-b border-gray-100 px-4 py-6"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">안녕하세요! 👋</h1>
+            <p className="text-gray-600">오늘도 건강한 하루 되세요</p>
+          </div>
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-lg">A</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Component Content */}
+      {renderComponent()}
+
       {/* Bottom Navigation */}
       <motion.div 
         initial={{ opacity: 0, y: 100 }}
@@ -210,31 +263,16 @@ export default function HomePage() {
               whileTap={{ scale: 0.9 }}
               onClick={() => handleTabClick(tab)}
               className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                tab.id === 'home' 
+                activeTab === tab.id 
                   ? 'bg-blue-50 text-blue-600' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <tab.icon className={`w-6 h-6 mb-1 ${tab.id === 'home' ? 'text-blue-600' : tab.color}`} />
+              <tab.icon className={`w-6 h-6 mb-1 ${activeTab === tab.id ? 'text-blue-600' : tab.color}`} />
               <span className="text-xs font-medium whitespace-nowrap text-center min-w-0 truncate">{tab.label}</span>
             </motion.button>
           ))}
         </div>
-      </motion.div>
-
-      {/* Floating Action Button */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.8, type: "spring" }}
-        className="fixed bottom-24 right-6"
-      >
-        <Button 
-          size="lg" 
-          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
       </motion.div>
     </div>
   );
