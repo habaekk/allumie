@@ -678,7 +678,7 @@ export default function MealsComponent() {
                 medicationStats.percentage >= 75 
                   ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
                   : medicationStats.percentage >= 50 
-                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
+                  ? 'bg-gradient-to-r from-orange-500 to-yellow-500' 
                   : 'bg-gradient-to-r from-red-500 to-pink-500'
               }`}>
                 <CardContent className="p-6">
@@ -710,7 +710,7 @@ export default function MealsComponent() {
                 <h3 className="text-lg font-semibold text-gray-900">투약 스케줄</h3>
                 <Button 
                   size="sm" 
-                  className="bg-red-500 hover:bg-red-600"
+                  className="bg-orange-500 hover:bg-orange-600"
                   onClick={handleOpenAddMedicationModal}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -1064,7 +1064,7 @@ export default function MealsComponent() {
                 </Button>
                 <Button
                   onClick={handleSaveMedication}
-                  className="bg-red-500 hover:bg-red-600 px-6"
+                  className="bg-orange-500 hover:bg-orange-600 px-6"
                 >
                   저장
                 </Button>
