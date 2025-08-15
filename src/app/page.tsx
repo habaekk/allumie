@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  UtensilsCrossed, 
-  Heart, 
-  Home, 
-  Brain, 
+import {
+  UtensilsCrossed,
+  Heart,
+  Home,
+  Brain,
   MessageCircle,
   Plus,
   TrendingUp,
-  Target
+  Target,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,7 @@ interface QuickAction {
   color: string;
   textColor: string;
   path: string;
+  description: string;
 }
 
 export default function HomePage() {
@@ -47,10 +49,10 @@ export default function HomePage() {
   ];
 
   const quickActions: QuickAction[] = [
-    { title: '오늘의 식단', icon: UtensilsCrossed, color: 'bg-orange-100', textColor: 'text-orange-600', path: '/meals' },
-    { title: '건강 체크', icon: Heart, color: 'bg-red-100', textColor: 'text-red-600', path: '/health' },
-    { title: '감정 기록', icon: Brain, color: 'bg-purple-100', textColor: 'text-purple-600', path: '/emotions' },
-    { title: 'AI 상담', icon: MessageCircle, color: 'bg-green-100', textColor: 'text-green-600', path: '/chat' },
+    { title: '건강검진 체크', icon: Heart, color: 'bg-red-100', textColor: 'text-red-600', path: '/health', description: '최근 건강검진 결과 확인하기' },
+    { title: '식단 & 약 복용', icon: UtensilsCrossed, color: 'bg-orange-100', textColor: 'text-orange-600', path: '/meals', description: '아침 점심 저녁 식단과 약을 한번에' },
+    { title: '감정 일기', icon: Brain, color: 'bg-purple-100', textColor: 'text-purple-600', path: '/emotions', description: '이모지와 메모로 오늘 기분 기록' },
+    { title: '통합 리포트', icon: BarChart3, color: 'bg-green-100', textColor: 'text-green-600', path: '/chat', description: '주간 건강 요약 보기' },
   ];
 
   const healthSummary = [
@@ -99,16 +101,80 @@ export default function HomePage() {
   // 홈 컨텐츠 렌더링 함수
   const renderHomeContent = () => (
     <>
-      {/* Main Content */}
-      <div className="px-4 py-6 space-y-6">
-        {/* Quick Actions */}
-        <motion.div 
+      {/* Profile Background Section */}
+      <div className="relative">
+        {/* Background Header */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="h-30 bg-green-300"
+        />
+
+        {/* Profile Section */}
+        <div className="relative px-4 -mt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-end space-x-4 mb-4"
+          >
+            {/* Profile Image & User Info */}
+            <div className="flex items-end gap-4">
+              <div className="relative">
+                <div className="w-28 h-28 bg-white rounded-2xl p-1 shadow-lg">
+                  <div className="w-full h-full bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                    <div
+                      className="w-16 h-8 transform rotate-135"
+                      style={{
+                        background: 'linear-gradient(45deg, #FF6B35 0%, #FF6B35 50%, #4ECDC4 50%, #4ECDC4 100%)',
+                        borderRadius: '50px'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 pb-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">정유진</h2>
+                <p className="text-gray-600 flex items-center">
+                  🌸
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Welcome Message */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.4 }}
+          className="mb-6 pl-5"
         >
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">빠른 액션</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <p className="text-m text-gray-900">안녕하세요 정유진님</p>
+          <p className="text-m text-gray-900">오늘도 건강과 감정을 제가 챙겨드릴게요.</p>
+        </motion.div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-6 py-2 space-y-6">
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-gray-900">Home</h2>
+            <Button
+              size="sm"
+              className="bg-green-300 hover:bg-green-400 text-gray-700 rounded-2xl px-3 py-1 text-sm font-medium"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
             {quickActions.map((action, index) => (
               <motion.div
                 key={action.title}
@@ -116,140 +182,39 @@ export default function HomePage() {
                 whileTap={{ scale: 0.98 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + index * 0.1 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                className="flex flex-col cursor-pointer mb-4"
+                onClick={() => handleQuickActionClick(action)}
               >
-                <Card 
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleQuickActionClick(action)}
-                >
-                  <CardContent className="p-4 text-center">
-                    <div className={`w-12 h-12 ${action.color} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                      <action.icon className={`w-6 h-6 ${action.textColor}`} />
+                <Card className="mb-2 rounded-md">
+                  <CardContent className="p-4">
+                    <div className="w-12 h-12 flex items-center justify-center mx-auto">
+                      <action.icon className={`w-8 h-8 ${action.textColor}`} />
                     </div>
-                    <p className="text-sm font-medium text-gray-700">{action.title}</p>
                   </CardContent>
                 </Card>
+                <div className="flex flex-col pl-2">
+                  <h3 className="text-sm font-semibold text-gray-900">{action.title}</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed">{action.description || '설명을 추가해주세요'}</p>
+                </div>
               </motion.div>
             ))}
           </div>
         </motion.div>
-
-        {/* Health Summary */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">오늘의 건강 요약</h2>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-500" />
-                건강 지표
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {healthSummary.map((item, index) => (
-                <motion.div
-                  key={item.label}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-gray-600">{item.label}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">{item.value}</div>
-                    <div className={`text-xs ${
-                      item.trend === 'up' ? 'text-green-600' : 
-                      item.trend === 'down' ? 'text-red-600' : 'text-gray-500'
-                    }`}>
-                      {item.change}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Today's Goal */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Target className="w-6 h-6" />
-                <h3 className="text-lg font-semibold">오늘의 목표</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span>물 마시기</span>
-                  <span className="text-blue-200">6/8잔</span>
-                </div>
-                <div className="w-full bg-blue-400 rounded-full h-2">
-                  <div className="bg-white h-2 rounded-full" style={{ width: '75%' }}></div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>걸음 수</span>
-                  <span className="text-blue-200">8,432/10,000</span>
-                </div>
-                <div className="w-full bg-blue-400 rounded-full h-2">
-                  <div className="bg-white h-2 rounded-full" style={{ width: '84%' }}></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
 
-      {/* Floating Action Button */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.8, type: "spring" }}
-        className="fixed bottom-24 right-6"
-      >
-        <Button 
-          size="lg" 
-          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </motion.div>
     </>
   );
 
   return (
-    <div className="min-h-screen pb-20 bg-gradient-to-br from-blue-50 via-white to-green-50">
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-sm border-b border-gray-100 px-4 py-6"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">안녕하세요! 👋</h1>
-            <p className="text-gray-600">오늘도 건강한 하루 되세요</p>
-          </div>
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-lg">A</span>
-          </div>
-        </div>
-      </motion.div>
+    <div className="min-h-screen pb-20 bg-gray-50">
+
 
       {/* Component Content */}
       {renderComponent()}
 
       {/* Bottom Navigation */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0 }}
@@ -262,11 +227,10 @@ export default function HomePage() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                activeTab === tab.id 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`flex-1 flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${activeTab === tab.id
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               <tab.icon className={`w-6 h-6 mb-1 ${activeTab === tab.id ? 'text-blue-600' : tab.color}`} />
               <span className="text-xs font-medium whitespace-nowrap text-center min-w-0 truncate">{tab.label}</span>
