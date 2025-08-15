@@ -7,10 +7,13 @@ import {
   Pill, 
   Plus, 
   Clock,
-  Trash2
+  Trash2,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 // import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useMealStore } from '@/lib/mealStore';
 import { NutritionCalculator } from '@/lib/nutritionCalculator';
@@ -19,14 +22,120 @@ import { Meal, MealCategory } from '@/lib/type/meal/meal';
 import { Food } from '@/lib/type/meal/food';
 import { Nutrition } from '@/lib/type/meal/nutrition';
 
+// 새 음식 항목 인터페이스
+interface NewFoodItem {
+  name: string;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+  fiber: number;
+}
+
+// 새 식사 폼 데이터 인터페이스
+interface NewMealForm {
+  category: MealCategory;
+  foods: NewFoodItem[];
+}
+
 export default function MealsComponent() {
   const [activeTab, setActiveTab] = useState('meals');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newMeal, setNewMeal] = useState<NewMealForm>({
+    category: 'Breakfast',
+    foods: [{ name: '', calories: 0, protein: 0, carbohydrates: 0, fat: 0, fiber: 0 }]
+  });
   
   // 삭제 기능
   const handleDeleteMeal = (mealId: string, mealName: string) => {
     if (window.confirm(`"${mealName}" 식단을 삭제하시겠습니까?`)) {
       deleteMeal(mealId);
     }
+  };
+
+  // 모달 열기
+  const handleOpenAddModal = () => {
+    setShowAddModal(true);
+    setNewMeal({
+      category: 'Breakfast',
+      foods: [{ name: '', calories: 0, protein: 0, carbohydrates: 0, fat: 0, fiber: 0 }]
+    });
+  };
+
+  // 모달 닫기
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
+  };
+
+  // 음식 항목 추가
+  const addFoodItem = () => {
+    setNewMeal(prev => ({
+      ...prev,
+      foods: [...prev.foods, { name: '', calories: 0, protein: 0, carbohydrates: 0, fat: 0, fiber: 0 }]
+    }));
+  };
+
+  // 음식 항목 제거
+  const removeFoodItem = (index: number) => {
+    if (newMeal.foods.length > 1) {
+      setNewMeal(prev => ({
+        ...prev,
+        foods: prev.foods.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  // 음식 정보 업데이트
+  const updateFoodItem = (index: number, field: keyof NewFoodItem, value: string | number) => {
+    setNewMeal(prev => ({
+      ...prev,
+      foods: prev.foods.map((food, i) => 
+        i === index ? { ...food, [field]: value } : food
+      )
+    }));
+  };
+
+  // 식사 카테고리 업데이트
+  const updateCategory = (category: MealCategory) => {
+    setNewMeal(prev => ({
+      ...prev,
+      category
+    }));
+  };
+
+  // 새 식사 저장
+  const handleSaveMeal = () => {
+    // 유효성 검사
+    if (newMeal.foods.some(food => !food.name.trim())) {
+      alert('모든 음식명을 입력해주세요.');
+      return;
+    }
+
+    // 새 식사 생성
+    const mealToAdd: Meal = {
+      id: `meal_${Date.now()}`,
+      category: newMeal.category,
+      date: new Date(today),
+      foods: newMeal.foods.map((food, index) => ({
+        id: `food_${Date.now()}_${index}`,
+        name: food.name,
+        quantity: 1,
+        nutrition: {
+          id: `nutrition_${Date.now()}_${index}`,
+          calories: food.calories,
+          protein: food.protein,
+          carbohydrates: food.carbohydrates,
+          fat: food.fat,
+          fiber: food.fiber
+        }
+      }))
+    };
+
+    // 스토어에 추가
+    addMeal(mealToAdd);
+    
+    // 모달 닫기
+    handleCloseAddModal();
   };
 
   // 오늘 날짜
@@ -323,7 +432,11 @@ export default function MealsComponent() {
                       샘플 데이터
                     </Button>
                   )}
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
+                  <Button 
+                    size="sm" 
+                    className="bg-orange-500 hover:bg-orange-600"
+                    onClick={handleOpenAddModal}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     추가
                   </Button>
@@ -476,6 +589,207 @@ export default function MealsComponent() {
           </>
         )}
       </div>
+
+      {/* 식단 추가 모달 */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6">
+              {/* 모달 헤더 */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">식단 추가</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCloseAddModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* 식사 종류 선택 */}
+              <div className="mb-6">
+                <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                  식사 종류
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(['Breakfast', 'Lunch', 'Dinner', 'Snack'] as MealCategory[]).map((category) => (
+                    <Button
+                      key={category}
+                      variant={newMeal.category === category ? "default" : "outline"}
+                      onClick={() => updateCategory(category)}
+                      className={`justify-start ${
+                        newMeal.category === category
+                          ? 'bg-orange-500 hover:bg-orange-600'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {MEAL_TIME_LABELS[category]}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 음식 목록 */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <Label className="text-sm font-medium text-gray-700">
+                    음식 정보
+                  </Label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={addFoodItem}
+                    className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    음식 추가
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {newMeal.foods.map((food, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-medium text-gray-700">
+                          음식 {index + 1}
+                        </h4>
+                        {newMeal.foods.length > 1 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeFoodItem(index)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* 음식명 */}
+                        <div className="md:col-span-2">
+                          <Label className="text-xs text-gray-600 mb-1 block">
+                            음식명 *
+                          </Label>
+                          <Input
+                            value={food.name}
+                            onChange={(e) => updateFoodItem(index, 'name', e.target.value)}
+                            placeholder="예: 계란말이"
+                            className="text-sm"
+                          />
+                        </div>
+
+                        {/* 칼로리 */}
+                        <div>
+                          <Label className="text-xs text-gray-600 mb-1 block">
+                            칼로리 (kcal)
+                          </Label>
+                          <Input
+                            type="number"
+                            value={food.calories}
+                            onChange={(e) => updateFoodItem(index, 'calories', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="text-sm"
+                            min="0"
+                            step="0.1"
+                          />
+                        </div>
+
+                        {/* 단백질 */}
+                        <div>
+                          <Label className="text-xs text-gray-600 mb-1 block">
+                            단백질 (g)
+                          </Label>
+                          <Input
+                            type="number"
+                            value={food.protein}
+                            onChange={(e) => updateFoodItem(index, 'protein', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="text-sm"
+                            min="0"
+                            step="0.1"
+                          />
+                        </div>
+
+                        {/* 탄수화물 */}
+                        <div>
+                          <Label className="text-xs text-gray-600 mb-1 block">
+                            탄수화물 (g)
+                          </Label>
+                          <Input
+                            type="number"
+                            value={food.carbohydrates}
+                            onChange={(e) => updateFoodItem(index, 'carbohydrates', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="text-sm"
+                            min="0"
+                            step="0.1"
+                          />
+                        </div>
+
+                        {/* 지방 */}
+                        <div>
+                          <Label className="text-xs text-gray-600 mb-1 block">
+                            지방 (g)
+                          </Label>
+                          <Input
+                            type="number"
+                            value={food.fat}
+                            onChange={(e) => updateFoodItem(index, 'fat', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="text-sm"
+                            min="0"
+                            step="0.1"
+                          />
+                        </div>
+
+                        {/* 섬유질 */}
+                        <div>
+                          <Label className="text-xs text-gray-600 mb-1 block">
+                            섬유질 (g)
+                          </Label>
+                          <Input
+                            type="number"
+                            value={food.fiber}
+                            onChange={(e) => updateFoodItem(index, 'fiber', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="text-sm"
+                            min="0"
+                            step="0.1"
+                          />
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* 모달 푸터 */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={handleCloseAddModal}
+                  className="px-6"
+                >
+                  취소
+                </Button>
+                <Button
+                  onClick={handleSaveMeal}
+                  className="bg-orange-500 hover:bg-orange-600 px-6"
+                >
+                  저장
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
