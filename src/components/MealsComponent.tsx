@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FoodAutocomplete } from '@/components/ui/food-autocomplete';
+import { FoodNutrition } from '@/lib/foodSearch';
 // import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useMealStore } from '@/lib/mealStore';
 import { NutritionCalculator } from '@/lib/nutritionCalculator';
@@ -91,6 +93,23 @@ export default function MealsComponent() {
       ...prev,
       foods: prev.foods.map((food, i) => 
         i === index ? { ...food, [field]: value } : food
+      )
+    }));
+  };
+
+  // 자동완성에서 음식 선택 시 영양정보 자동 채우기
+  const handleFoodSelect = (index: number, selectedFood: FoodNutrition) => {
+    setNewMeal(prev => ({
+      ...prev,
+      foods: prev.foods.map((food, i) => 
+        i === index ? {
+          name: selectedFood.name,
+          calories: selectedFood.calories,
+          protein: selectedFood.protein,
+          carbohydrates: selectedFood.carbohydrates,
+          fat: selectedFood.fat,
+          fiber: selectedFood.fiber,
+        } : food
       )
     }));
   };
@@ -674,14 +693,12 @@ export default function MealsComponent() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {/* 음식명 */}
                         <div className="md:col-span-2">
-                          <Label className="text-xs text-gray-600 mb-1 block">
-                            음식명 *
-                          </Label>
-                          <Input
+                          <FoodAutocomplete
                             value={food.name}
-                            onChange={(e) => updateFoodItem(index, 'name', e.target.value)}
+                            onChange={(value) => updateFoodItem(index, 'name', value)}
+                            onFoodSelect={(selectedFood) => handleFoodSelect(index, selectedFood)}
                             placeholder="예: 계란말이"
-                            className="text-sm"
+                            label="음식명"
                           />
                         </div>
 
