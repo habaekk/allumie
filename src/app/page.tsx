@@ -9,12 +9,10 @@ import {
   Brain,
   MessageCircle,
   Plus,
-  TrendingUp,
-  Target,
   BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import EmotionsComponent from '@/components/EmotionsComponent';
 import HealthComponent from '@/components/HealthComponent';
 import MealsComponent from '@/components/MealsComponent';
@@ -55,12 +53,12 @@ export default function HomePage() {
     { title: '통합 리포트', icon: BarChart3, color: 'bg-green-100', textColor: 'text-green-600', path: '/chat', description: '주간 건강 요약 보기' },
   ];
 
-  const healthSummary = [
-    { label: '체중', value: '65.2kg', change: '+0.3kg', trend: 'up' },
-    { label: '혈압', value: '120/80', change: '정상', trend: 'stable' },
-    { label: '수면', value: '7.5시간', change: '+0.5시간', trend: 'up' },
-    { label: '활동량', value: '8,432', change: '+1,200', trend: 'up' },
-  ];
+  // const healthSummary = [
+  //   { label: '체중', value: '65.2kg', change: '+0.3kg', trend: 'up' },
+  //   { label: '혈압', value: '120/80', change: '정상', trend: 'stable' },
+  //   { label: '수면', value: '7.5시간', change: '+0.5시간', trend: 'up' },
+  //   { label: '활동량', value: '8,432', change: '+1,200', trend: 'up' },
+  // ];
 
   const handleTabClick = (tab: Tab) => {
     setActiveTab(tab.id);
