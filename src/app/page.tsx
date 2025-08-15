@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   UtensilsCrossed,
@@ -37,6 +38,7 @@ interface QuickAction {
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('home');
   const [currentComponent, setCurrentComponent] = useState('home');
+  const router = useRouter();
 
   const tabs: Tab[] = [
     { id: 'meals', label: 'Meals & Meds', icon: UtensilsCrossed, color: 'text-orange-500', path: '/meals' },
@@ -61,11 +63,23 @@ export default function HomePage() {
   // ];
 
   const handleTabClick = (tab: Tab) => {
+    // Chat 탭을 클릭했을 때는 별도 페이지로 라우팅
+    if (tab.id === 'chat') {
+      router.push('/chat');
+      return;
+    }
+    
     setActiveTab(tab.id);
     setCurrentComponent(tab.id);
   };
 
   const handleQuickActionClick = (action: QuickAction) => {
+    // Chat 페이지로 가는 액션일 때는 라우팅
+    if (action.path === '/chat') {
+      router.push('/chat');
+      return;
+    }
+    
     setActiveTab(action.path.replace('/', '') || 'home');
     setCurrentComponent(action.path.replace('/', '') || 'home');
   };
@@ -79,18 +93,6 @@ export default function HomePage() {
         return <HealthComponent />;
       case 'meals':
         return <MealsComponent />;
-      case 'chat':
-        return (
-          <div className="min-h-screen pb-20 bg-gradient-to-br from-green-50 via-white to-blue-50">
-            <div className="flex items-center justify-center h-screen">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">AI Health Chat</h1>
-                <p className="text-gray-600">건강 데이터 기반 AI 상담</p>
-                <p className="text-sm text-gray-500 mt-2">(Chat 기능은 별도 구현 예정)</p>
-              </div>
-            </div>
-          </div>
-        );
       default:
         return renderHomeContent();
     }

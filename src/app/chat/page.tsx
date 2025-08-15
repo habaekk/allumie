@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { 
-  Send, 
-  Bot, 
-  User, 
+import {
+  Send,
+  Bot,
+  User,
   ArrowLeft,
   Plus,
   Brain,
@@ -46,6 +46,10 @@ export default function ChatPage() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const suggestedQuestionsRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
   const router = useRouter();
 
   const scrollToBottom = () => {
@@ -112,27 +116,27 @@ export default function ChatPage() {
 
   const generateBotResponse = (userInput: string): string => {
     const input = userInput.toLowerCase();
-    
+
     if (input.includes('건강') || input.includes('상태')) {
       return `현재 건강 상태를 분석해드릴게요! 📊\n\n• 체중: ${healthSummary.weight}\n• 혈압: ${healthSummary.bloodPressure}\n• 심박수: ${healthSummary.heartRate}\n• 수면: ${healthSummary.sleep}\n• 걸음: ${healthSummary.steps}\n• 기분: ${healthSummary.mood}\n\n전반적으로 건강 상태가 양호합니다. 규칙적인 운동과 균형 잡힌 식단을 유지하시면 더욱 좋을 것 같아요!`;
     }
-    
+
     if (input.includes('식단') || input.includes('음식') || input.includes('영양')) {
       return `오늘의 식단을 분석해보니 단백질은 충분하지만 탄수화물이 부족해요! 🍽️\n\n권장사항:\n• 아침: 단백질과 섬유질이 풍부한 오트밀\n• 점심: 닭가슴살과 채소가 든 샐러드\n• 저녁: 생선과 현미밥\n• 간식: 견과류나 그릭요거트\n\n하루 8잔의 물도 잊지 마세요! 💧`;
     }
-    
+
     if (input.includes('운동') || input.includes('활동')) {
       return `오늘의 활동량을 보니 ${healthSummary.steps}걸음으로 목표의 84%를 달성했어요! 🚶‍♀️\n\n추천 운동:\n• 유산소: 30분 걷기 또는 조깅\n• 근력: 스쿼트, 플랭크, 푸시업\n• 유연성: 요가나 스트레칭\n\n현재 체중이 목표보다 0.2kg 높으니, 하루 500칼로리 정도 더 소모하면 좋을 것 같아요! 💪`;
     }
-    
+
     if (input.includes('스트레스') || input.includes('감정') || input.includes('기분')) {
       return `오늘의 기분 점수는 ${healthSummary.mood}로 양호한 편이에요! 😊\n\n스트레스 관리 팁:\n• 깊은 호흡 운동 (4-7-8 호흡법)\n• 명상이나 마인드풀니스\n• 취미 활동 (독서, 음악 감상)\n• 친구나 가족과의 대화\n\n주말에는 기분이 더 좋아지는 경향이 있어요. 평일에도 작은 즐거움을 찾아보세요! 🌟`;
     }
-    
+
     if (input.includes('수면') || input.includes('잠')) {
       return `수면 패턴을 분석해보니 평균 ${healthSummary.sleep}로 적절한 수면 시간을 유지하고 있어요! 😴\n\n수면 품질 향상 방법:\n• 취침 전 1시간 스마트폰 사용 자제\n• 시원하고 어두운 환경 유지\n• 규칙적인 취침 시간\n• 취침 전 따뜻한 차나 명상\n\n현재 수면 품질은 85%로 양호합니다. 더 나은 수면을 위해 위의 방법들을 시도해보세요!`;
     }
-    
+
     return `죄송해요, 질문을 정확히 이해하지 못했어요. 🤔\n\n다음과 같은 질문을 해보세요:\n• "오늘의 건강 상태는 어때요?"\n• "식단에 대한 조언을 주세요"\n• "운동 계획을 세워주세요"\n• "스트레스 관리 방법을 알려주세요"\n\n더 구체적으로 질문해주시면 더 정확한 답변을 드릴 수 있어요!`;
   };
 
@@ -151,13 +155,58 @@ export default function ChatPage() {
     setInputValue(question);
   };
 
+  // 드래그 스크롤 이벤트 핸들러
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX - (suggestedQuestionsRef.current?.offsetLeft || 0));
+    setScrollLeft(suggestedQuestionsRef.current?.scrollLeft || 0);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - (suggestedQuestionsRef.current?.offsetLeft || 0);
+    const walk = (x - startX) * 2; // 스크롤 속도 조절
+    if (suggestedQuestionsRef.current) {
+      suggestedQuestionsRef.current.scrollLeft = scrollLeft - walk;
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  // 터치 이벤트 핸들러 (모바일 지원)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - (suggestedQuestionsRef.current?.offsetLeft || 0));
+    setScrollLeft(suggestedQuestionsRef.current?.scrollLeft || 0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - (suggestedQuestionsRef.current?.offsetLeft || 0);
+    const walk = (x - startX) * 2;
+    if (suggestedQuestionsRef.current) {
+      suggestedQuestionsRef.current.scrollLeft = scrollLeft - walk;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-br from-green-50 via-white to-blue-50">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-sm border-b border-gray-100 px-4 py-6"
+        className="bg-white shadow-sm border-b border-gray-100 px-4 py-2"
       >
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" className="p-2" onClick={() => router.back()}>
@@ -165,57 +214,48 @@ export default function ChatPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">AI Health Chat</h1>
-            <p className="text-gray-600">건강 데이터 기반 AI 상담</p>
           </div>
         </div>
       </motion.div>
 
-      {/* Quick Actions */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="px-4 py-4"
-      >
-        <div className="grid grid-cols-2 gap-3">
-          {quickActions.map((action, index) => (
-            <motion.button
-              key={action.title}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleQuickAction(action.title)}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.1 }}
-              className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-left"
-            >
-              <div className={`w-10 h-10 ${action.color} rounded-full flex items-center justify-center mx-auto mb-2`}>
-                <action.icon className={`w-5 h-5 ${action.textColor}`} />
-              </div>
-              <div className="text-sm font-medium text-gray-700 text-center">{action.title}</div>
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
-
       {/* Suggested Questions */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="px-4 mb-4"
       >
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div 
+          ref={suggestedQuestionsRef}
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide cursor-grab active:cursor-grabbing"
+          style={{ 
+            scrollbarWidth: 'none', 
+            msOverflowStyle: 'none',
+            userSelect: isDragging ? 'none' : 'auto'
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {suggestedQuestions.map((question, index) => (
             <motion.button
               key={index}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => handleSuggestedQuestion(question)}
+              onClick={(e) => {
+                if (!isDragging) {
+                  handleSuggestedQuestion(question);
+                }
+              }}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + index * 0.1 }}
-              className="px-4 py-2 bg-white text-sm text-gray-700 rounded-full shadow-sm hover:shadow-md transition-shadow whitespace-nowrap flex-shrink-0"
+              className="px-4 py-2 bg-white text-sm text-gray-700 rounded-full shadow-sm hover:shadow-md transition-shadow whitespace-nowrap flex-shrink-0 pointer-events-auto"
+              style={{ userSelect: 'none' }}
             >
               {question}
             </motion.button>
@@ -237,29 +277,26 @@ export default function ChatPage() {
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div className={`flex items-start gap-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.type === 'user' 
-                      ? 'bg-blue-500' 
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.type === 'user'
+                      ? 'bg-blue-500'
                       : 'bg-green-500'
-                  }`}>
+                    }`}>
                     {message.type === 'user' ? (
                       <User className="w-4 h-4 text-white" />
                     ) : (
                       <Bot className="w-4 h-4 text-white" />
                     )}
                   </div>
-                  <div className={`rounded-2xl px-4 py-3 ${
-                    message.type === 'user'
+                  <div className={`rounded-2xl px-4 py-3 ${message.type === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-white text-gray-900 shadow-sm'
-                  }`}>
-                    <div className="whitespace-pre-line text-sm">{message.content}</div>
-                    <div className={`text-xs mt-2 ${
-                      message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
                     }`}>
-                      {message.timestamp.toLocaleTimeString('ko-KR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                    <div className="whitespace-pre-line text-sm">{message.content}</div>
+                    <div className={`text-xs mt-2 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
+                      {message.timestamp.toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
                       })}
                     </div>
                   </div>
@@ -289,13 +326,13 @@ export default function ChatPage() {
               </div>
             </motion.div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       {/* Input Area */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -317,7 +354,7 @@ export default function ChatPage() {
               className="w-full"
             />
           </div>
-          <Button 
+          <Button
             onClick={handleSendMessage}
             disabled={!inputValue.trim()}
             className="bg-green-500 hover:bg-green-600 disabled:bg-gray-300"
@@ -325,21 +362,6 @@ export default function ChatPage() {
             <Send className="w-4 h-4" />
           </Button>
         </div>
-      </motion.div>
-
-      {/* Floating Action Button */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.8, type: "spring" }}
-        className="fixed bottom-24 right-6"
-      >
-        <Button 
-          size="lg" 
-          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
       </motion.div>
     </div>
   );

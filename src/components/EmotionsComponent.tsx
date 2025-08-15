@@ -87,12 +87,11 @@ export default function EmotionsComponent() {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-sm border-b border-gray-100 px-4 py-6"
+        className="bg-white shadow-sm border-b border-gray-100 px-4 py-2"
       >
-        <div className="flex items-center justify-center">
-          <div className="text-center">
+        <div className="flex">
+          <div className="text-left">
             <h1 className="text-2xl font-bold text-gray-900">Emotions</h1>
-            <p className="text-gray-600">감정 관리와 멘탈 케어</p>
           </div>
         </div>
       </motion.div>
