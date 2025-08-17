@@ -3,10 +3,10 @@ import { devtools } from 'zustand/middleware';
 import { 
   Meal, 
   MealCategory
-} from './type/meal/meal';
-import { Food } from './type/meal/food';
-import { Nutrition } from './type/meal/nutrition';
-import { NutritionCalculator } from './nutritionCalculator';
+} from '../type/meal/meal';
+import { Food } from '../type/meal/food';
+import { Nutrition } from '../type/meal/nutrition';
+import { NutritionCalculator } from '../nutritionCalculator';
 
 // 사용자 프로필 인터페이스
 interface UserProfile {
