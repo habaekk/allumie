@@ -251,7 +251,7 @@ export default function ChatPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="px-4 mb-4"
+        className="px-4 mb-4 mt-2"
       >
         <div 
           ref={suggestedQuestionsRef}
