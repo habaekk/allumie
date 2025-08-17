@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FoodAutocomplete } from '@/components/ui/food-autocomplete';
 import { FoodNutrition } from '@/lib/foodSearch';
-import { useMealStore } from '@/lib/mealStore';
+import { useMealStore } from '@/lib/store/mealStore';
 import { NutritionCalculator } from '@/lib/nutritionCalculator';
 import { MEAL_TIME_LABELS } from '@/lib/mealConstants';
 import { Meal, MealCategory } from '@/lib/type/meal/meal';

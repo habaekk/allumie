@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { getGeminiClient, createHealthPrompt, type HealthData } from '@/lib/api/gemini';
 
 interface Message {
   id: string;
@@ -64,7 +66,7 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const healthSummary = {
+  const healthSummary: HealthData = {
     weight: '65.2kg',
     bloodPressure: '120/80',
     heartRate: '72bpm',
@@ -101,48 +103,67 @@ export default function ChatPage() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const botResponse = generateBotResponse(inputValue);
+    try {
+      // Gemini AI를 사용하여 응답 생성
+      const geminiClient = getGeminiClient();
+      
+      // 대화 히스토리 구성 (초기 봇 메시지 제외)
+      const conversationHistory = messages
+        .filter((msg, index) => !(index === 0 && msg.type === 'bot')) // 첫 번째 봇 메시지 제외
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' as const : 'model' as const,
+          content: msg.content
+        }));
+      
+      // 현재 메시지 추가
+      conversationHistory.push({
+        role: 'user' as const,
+        content: currentInput
+      });
+
+      // 건강 데이터와 함께 프롬프트 생성
+      const enhancedPrompt = createHealthPrompt(currentInput, healthSummary);
+      
+      // AI 응답 생성 (실제 사용자 대화가 있는 경우에만 히스토리 사용)
+      const userMessagesCount = conversationHistory.filter(msg => msg.role === 'user').length;
+      const aiResponse = userMessagesCount > 1
+        ? await geminiClient.generateTextWithHistory(conversationHistory, {
+            systemInstruction: enhancedPrompt
+          })
+        : await geminiClient.generateText(currentInput, {
+            systemInstruction: enhancedPrompt
+          });
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: botResponse,
+        content: aiResponse,
         timestamp: new Date(),
       };
+      
       setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('AI 응답 생성 오류:', error);
+      
+      // 오류 발생 시 폴백 응답
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: '죄송합니다. 현재 AI 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요. 🤖',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, fallbackMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
-  const generateBotResponse = (userInput: string): string => {
-    const input = userInput.toLowerCase();
 
-    if (input.includes('건강') || input.includes('상태')) {
-      return `현재 건강 상태를 분석해드릴게요! 📊\n\n• 체중: ${healthSummary.weight}\n• 혈압: ${healthSummary.bloodPressure}\n• 심박수: ${healthSummary.heartRate}\n• 수면: ${healthSummary.sleep}\n• 걸음: ${healthSummary.steps}\n• 기분: ${healthSummary.mood}\n\n전반적으로 건강 상태가 양호합니다. 규칙적인 운동과 균형 잡힌 식단을 유지하시면 더욱 좋을 것 같아요!`;
-    }
-
-    if (input.includes('식단') || input.includes('음식') || input.includes('영양')) {
-      return `오늘의 식단을 분석해보니 단백질은 충분하지만 탄수화물이 부족해요! 🍽️\n\n권장사항:\n• 아침: 단백질과 섬유질이 풍부한 오트밀\n• 점심: 닭가슴살과 채소가 든 샐러드\n• 저녁: 생선과 현미밥\n• 간식: 견과류나 그릭요거트\n\n하루 8잔의 물도 잊지 마세요! 💧`;
-    }
-
-    if (input.includes('운동') || input.includes('활동')) {
-      return `오늘의 활동량을 보니 ${healthSummary.steps}걸음으로 목표의 84%를 달성했어요! 🚶‍♀️\n\n추천 운동:\n• 유산소: 30분 걷기 또는 조깅\n• 근력: 스쿼트, 플랭크, 푸시업\n• 유연성: 요가나 스트레칭\n\n현재 체중이 목표보다 0.2kg 높으니, 하루 500칼로리 정도 더 소모하면 좋을 것 같아요! 💪`;
-    }
-
-    if (input.includes('스트레스') || input.includes('감정') || input.includes('기분')) {
-      return `오늘의 기분 점수는 ${healthSummary.mood}로 양호한 편이에요! 😊\n\n스트레스 관리 팁:\n• 깊은 호흡 운동 (4-7-8 호흡법)\n• 명상이나 마인드풀니스\n• 취미 활동 (독서, 음악 감상)\n• 친구나 가족과의 대화\n\n주말에는 기분이 더 좋아지는 경향이 있어요. 평일에도 작은 즐거움을 찾아보세요! 🌟`;
-    }
-
-    if (input.includes('수면') || input.includes('잠')) {
-      return `수면 패턴을 분석해보니 평균 ${healthSummary.sleep}로 적절한 수면 시간을 유지하고 있어요! 😴\n\n수면 품질 향상 방법:\n• 취침 전 1시간 스마트폰 사용 자제\n• 시원하고 어두운 환경 유지\n• 규칙적인 취침 시간\n• 취침 전 따뜻한 차나 명상\n\n현재 수면 품질은 85%로 양호합니다. 더 나은 수면을 위해 위의 방법들을 시도해보세요!`;
-    }
-
-    return `죄송해요, 질문을 정확히 이해하지 못했어요. 🤔\n\n다음과 같은 질문을 해보세요:\n• "오늘의 건강 상태는 어때요?"\n• "식단에 대한 조언을 주세요"\n• "운동 계획을 세워주세요"\n• "스트레스 관리 방법을 알려주세요"\n\n더 구체적으로 질문해주시면 더 정확한 답변을 드릴 수 있어요!`;
-  };
 
   const handleQuickAction = (action: string) => {
     const actionMessages: { [key: string]: string } = {
@@ -298,7 +319,14 @@ export default function ChatPage() {
                       ? 'bg-blue-500 text-white'
                       : 'bg-white text-gray-900 shadow-sm'
                     }`}>
-                    <div className="whitespace-pre-line text-sm">{message.content}</div>
+                    {message.type === 'bot' ? (
+                      <MarkdownRenderer 
+                        content={message.content}
+                        className="text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                      />
+                    ) : (
+                      <div className="whitespace-pre-line text-sm">{message.content}</div>
+                    )}
                     <div className={`text-xs mt-2 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
                       }`}>
                       {message.timestamp.toLocaleTimeString('ko-KR', {
