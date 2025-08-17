@@ -176,13 +176,13 @@ export default function HomePage() {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-gray-900">Home</h2>
-            <Button
+            {/* <Button
               size="sm"
               className="bg-green-300 hover:bg-green-400 text-gray-700 rounded-2xl px-3 py-1 text-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-1" />
               Add
-            </Button>
+            </Button> */}
           </div>
           <div className="grid grid-cols-2 gap-2">
             {quickActions.map((action, index) => (

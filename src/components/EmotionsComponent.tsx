@@ -1,85 +1,210 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Brain, 
-  Smile, 
-  Frown, 
-  Meh, 
-  Plus, 
   Calendar,
-  Lightbulb,
-  Heart,
-  MessageCircle
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Save,
+  BarChart3,
+  FileEdit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+// 감정 아이콘 컴포넌트 (창의적 디자인)
+const EmotionIcon = ({ type, size = 'md' }: { type: string; size?: 'sm' | 'md' | 'lg' }) => {
+  const sizeClasses = {
+    sm: 'w-6 h-6',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12'
+  };
+
+  const emotions = {
+    excellent: (
+      <div className={`${sizeClasses[size]} relative`}>
+        <div className="w-full h-full bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full flex items-center justify-center">
+          <div className="w-2/3 h-2/3 bg-yellow-200 rounded-full flex items-center justify-center relative">
+            <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute top-1/4 right-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute bottom-1/4 w-1/2 h-1 bg-black rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    ),
+    good: (
+      <div className={`${sizeClasses[size]} relative`}>
+        <div className="w-full h-full bg-gradient-to-br from-green-300 to-emerald-400 rounded-full flex items-center justify-center">
+          <div className="w-2/3 h-2/3 bg-green-200 rounded-full flex items-center justify-center relative">
+            <div className="absolute top-1/3 left-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute bottom-1/3 w-1/3 h-0.5 bg-black rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    ),
+    neutral: (
+      <div className={`${sizeClasses[size]} relative`}>
+        <div className="w-full h-full bg-gradient-to-br from-gray-300 to-slate-400 rounded-full flex items-center justify-center">
+          <div className="w-2/3 h-2/3 bg-gray-200 rounded-full flex items-center justify-center relative">
+            <div className="absolute top-1/3 left-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute bottom-1/3 w-1/4 h-0.5 bg-black"></div>
+          </div>
+        </div>
+      </div>
+    ),
+    bad: (
+      <div className={`${sizeClasses[size]} relative`}>
+        <div className="w-full h-full bg-gradient-to-br from-orange-400 to-red-400 rounded-full flex items-center justify-center">
+          <div className="w-2/3 h-2/3 bg-orange-200 rounded-full flex items-center justify-center relative">
+            <div className="absolute top-1/3 left-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-black rounded-full"></div>
+            <div className="absolute bottom-1/4 w-1/3 h-0.5 bg-black rounded-full transform rotate-180"></div>
+          </div>
+        </div>
+      </div>
+    ),
+    terrible: (
+      <div className={`${sizeClasses[size]} relative`}>
+        <div className="w-full h-full bg-gradient-to-br from-red-400 to-purple-500 rounded-full flex items-center justify-center">
+          <div className="w-2/3 h-2/3 bg-red-200 rounded-full flex items-center justify-center relative">
+            <div className="absolute top-1/4 left-1/4 w-1 h-1.5 bg-black rounded-full transform -rotate-12"></div>
+            <div className="absolute top-1/4 right-1/4 w-1 h-1.5 bg-black rounded-full transform rotate-12"></div>
+            <div className="absolute bottom-1/4 w-1/2 h-1 bg-black rounded-full transform rotate-180"></div>
+          </div>
+        </div>
+      </div>
+    )
+  };
+
+  return emotions[type as keyof typeof emotions] || emotions.neutral;
+};
+
+interface EmotionEntry {
+  date: string;
+  emotion: string;
+  diary: string;
+  dailyAnswer: string;
+}
 
 export default function EmotionsComponent() {
-  const [activeTab, setActiveTab] = useState('mood');
-  const [selectedMood, setSelectedMood] = useState('');
+  const [activeTab, setActiveTab] = useState('record');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEmotion, setSelectedEmotion] = useState('');
+  const [diaryText, setDiaryText] = useState('');
+  const [dailyAnswer, setDailyAnswer] = useState('');
+  const [emotionEntries, setEmotionEntries] = useState<EmotionEntry[]>([
+    { date: '2024-01-15', emotion: 'excellent', diary: '오늘은 정말 좋은 하루였다!', dailyAnswer: '친구들과 즐거운 시간을 보냈어요.' },
+    { date: '2024-01-14', emotion: 'good', diary: '평범하지만 괜찮은 하루', dailyAnswer: '업무가 순조롭게 진행되었어요.' },
+    { date: '2024-01-12', emotion: 'bad', diary: '조금 힘든 하루였다', dailyAnswer: '스트레스가 많았어요.' }
+  ]);
 
-  const moodData = [
-    { day: '월', mood: 8, energy: 7, stress: 3 },
-    { day: '화', mood: 7, energy: 6, stress: 4 },
-    { day: '수', mood: 6, energy: 5, stress: 6 },
-    { day: '목', mood: 8, energy: 8, stress: 2 },
-    { day: '금', mood: 9, energy: 9, stress: 1 },
-    { day: '토', mood: 8, energy: 7, stress: 2 },
-    { day: '일', mood: 7, energy: 6, stress: 3 },
+  const emotionTypes = [
+    { id: 'excellent', label: '최고', value: 5, color: 'from-yellow-300 to-orange-400' },
+    { id: 'good', label: '좋음', value: 4, color: 'from-green-300 to-emerald-400' },
+    { id: 'neutral', label: '보통', value: 3, color: 'from-gray-300 to-slate-400' },
+    { id: 'bad', label: '나쁨', value: 2, color: 'from-orange-400 to-red-400' },
+    { id: 'terrible', label: '최악', value: 1, color: 'from-red-400 to-purple-500' }
   ];
 
-  const moodTypes = [
-    { id: 'happy', label: '행복', icon: Smile, color: 'text-yellow-500', bgColor: 'bg-yellow-100', score: 8 },
-    { id: 'sad', label: '슬픔', icon: Frown, color: 'text-blue-500', bgColor: 'bg-blue-100', score: 2 },
-    { id: 'angry', label: '화남', icon: Frown, color: 'text-red-500', bgColor: 'bg-red-100', score: 1 },
-    { id: 'neutral', label: '보통', icon: Meh, color: 'text-gray-500', bgColor: 'bg-gray-100', score: 3 },
-    { id: 'excited', label: '신남', icon: Smile, color: 'text-green-500', bgColor: 'bg-green-100', score: 4 },
-  ];
+  const dailyQuestion = "오늘 하루 중 가장 인상 깊었던 순간은 무엇인가요?";
 
-  const dailyQuestions = [
-    {
-      id: 1,
-      question: "오늘 하루는 어땠나요?",
-      type: "mood",
-      options: ["매우 좋음", "좋음", "보통", "나쁨", "매우 나쁨"]
-    },
-    {
-      id: 2,
-      question: "오늘 스트레스 수준은 어느 정도였나요?",
-      type: "stress",
-      options: ["매우 낮음", "낮음", "보통", "높음", "매우 높음"]
-    },
-    {
-      id: 3,
-      question: "오늘 에너지 수준은 어느 정도였나요?",
-      type: "energy",
-      options: ["매우 낮음", "낮음", "보통", "높음", "매우 높음"]
+  // 달력 관련 함수들
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const formatDate = (year: number, month: number, day: number) => {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  const getEmotionForDate = (dateStr: string) => {
+    return emotionEntries.find(entry => entry.date === dateStr);
+  };
+
+  const handleDateClick = (day: number) => {
+    const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day);
+    setSelectedDate(dateStr);
+    
+    const existingEntry = getEmotionForDate(dateStr);
+    if (existingEntry) {
+      setSelectedEmotion(existingEntry.emotion);
+      setDiaryText(existingEntry.diary);
+      setDailyAnswer(existingEntry.dailyAnswer);
+    } else {
+      setSelectedEmotion('');
+      setDiaryText('');
+      setDailyAnswer('');
     }
-  ];
+    
+    setIsModalOpen(true);
+  };
 
-  const moodHistory = [
-    { date: '2024-01-15', mood: 8, note: '친구들과 좋은 시간을 보냄', activities: ['친구 만남', '영화 감상'] },
-    { date: '2024-01-14', mood: 6, note: '일이 많아서 조금 지침', activities: ['업무', '운동'] },
-    { date: '2024-01-13', mood: 9, note: '가족과 즐거운 저녁', activities: ['가족 식사', '게임'] },
-    { date: '2024-01-12', mood: 7, note: '새로운 취미를 시작함', activities: ['독서', '음악 감상'] },
-  ];
+  const handleSaveEntry = () => {
+    if (!selectedDate || !selectedEmotion) return;
 
-  const insights = [
-    { title: '긍정적 패턴', description: '주말에는 기분이 더 좋아지는 경향이 있어요', icon: Lightbulb, color: 'text-yellow-500' },
-    { title: '스트레스 요인', description: '화요일과 수요일에 스트레스가 높아져요', icon: Brain, color: 'text-purple-500' },
-    { title: '에너지 관리', description: '운동 후 에너지가 상승하는 경향이 있어요', icon: Heart, color: 'text-red-500' },
-  ];
+    const newEntry: EmotionEntry = {
+      date: selectedDate,
+      emotion: selectedEmotion,
+      diary: diaryText,
+      dailyAnswer: dailyAnswer
+    };
 
-  const pieChartData = [
-    { name: '행복', value: 40, color: '#fbbf24' },
-    { name: '보통', value: 30, color: '#6b7280' },
-    { name: '신남', value: 20, color: '#10b981' },
-    { name: '슬픔', value: 7, color: '#3b82f6' },
-    { name: '화남', value: 3, color: '#ef4444' },
-  ];
+    setEmotionEntries(prev => {
+      const filtered = prev.filter(entry => entry.date !== selectedDate);
+      return [...filtered, newEntry];
+    });
+
+    setIsModalOpen(false);
+    setSelectedEmotion('');
+    setDiaryText('');
+    setDailyAnswer('');
+  };
+
+  const getChartData = () => {
+    const last7Days = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = formatDate(date.getFullYear(), date.getMonth(), date.getDate());
+      const entry = getEmotionForDate(dateStr);
+      
+      last7Days.push({
+        day: date.toLocaleDateString('ko-KR', { weekday: 'short' }),
+        value: entry ? emotionTypes.find(t => t.id === entry.emotion)?.value || 3 : 3,
+        date: dateStr
+      });
+    }
+    
+    return last7Days;
+  };
+
+  const getEmotionDistribution = () => {
+    const distribution = emotionTypes.map(type => ({
+      name: type.label,
+      value: emotionEntries.filter(entry => entry.emotion === type.id).length,
+      color: type.id === 'excellent' ? '#fbbf24' :
+             type.id === 'good' ? '#10b981' :
+             type.id === 'neutral' ? '#6b7280' :
+             type.id === 'bad' ? '#f97316' : '#ef4444'
+    }));
+
+    return distribution.filter(item => item.value > 0);
+  };
 
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
@@ -87,13 +212,9 @@ export default function EmotionsComponent() {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-sm border-b border-gray-100 px-4 py-2"
+        className="bg-white shadow-sm border-b border-gray-100 px-4 py-4"
       >
-        <div className="flex">
-          <div className="text-left">
-            <h1 className="text-2xl font-bold text-gray-900">Emotions</h1>
-          </div>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">감정 일기</h1>
       </motion.div>
 
       {/* Tab Navigation */}
@@ -105,15 +226,13 @@ export default function EmotionsComponent() {
       >
         <div className="flex bg-gray-100 rounded-lg p-1">
           {[
-            { id: 'mood', label: '기분', icon: Smile },
-            { id: 'questions', label: '일일 Q&A', icon: MessageCircle },
-            { id: 'insights', label: '인사이트', icon: Lightbulb },
-            { id: 'history', label: '기록', icon: Calendar }
+            { id: 'record', label: '기록', icon: FileEdit },
+            { id: 'analysis', label: '분석', icon: BarChart3 }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-md transition-all ${
                 activeTab === tab.id
                   ? 'bg-white text-purple-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-800'
@@ -128,59 +247,112 @@ export default function EmotionsComponent() {
 
       {/* Main Content */}
       <div className="px-4 space-y-6">
-        {activeTab === 'mood' && (
+        {activeTab === 'record' && (
           <>
-            {/* Today's Mood Summary */}
+            {/* Calendar Header */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
-                <CardContent className="p-6">
+              <Card>
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">오늘의 기분</h3>
-                    <Brain className="w-5 h-5" />
+                    <button
+                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-lg font-semibold">
+                      {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
+                    </h2>
+                    <button
+                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">8</div>
-                      <div className="text-purple-100 text-sm">기분 점수</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">7</div>
-                      <div className="text-purple-100 text-sm">에너지</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">3</div>
-                      <div className="text-purple-100 text-sm">스트레스</div>
-                    </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                      <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1">
+                    {/* Empty cells for days before month starts */}
+                    {Array.from({ length: getFirstDayOfMonth(currentDate) }, (_, i) => (
+                      <div key={`empty-${i}`} className="h-10"></div>
+                    ))}
+                    
+                    {/* Calendar days */}
+                    {Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => {
+                      const day = i + 1;
+                      const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day);
+                      const emotion = getEmotionForDate(dateStr);
+                      
+                      return (
+                        <motion.button
+                          key={day}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDateClick(day)}
+                          className="h-10 w-10 rounded-full flex items-center justify-center relative hover:bg-gray-100 transition-colors"
+                        >
+                          {emotion ? (
+                            <EmotionIcon type={emotion.emotion} size="sm" />
+                          ) : (
+                            <div className="w-6 h-6 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
+                              <span className="text-xs text-gray-500">{day}</span>
+                            </div>
+                          )}
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
+          </>
+        )}
 
-            {/* Mood Chart */}
+        {activeTab === 'analysis' && (
+          <>
+            {/* Weekly Emotion Chart */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.2 }}
             >
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">주간 기분 변화</CardTitle>
+                  <CardTitle className="text-lg">주간 감정 변화</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={moodData}>
+                      <LineChart data={getChartData()}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="day" />
-                        <YAxis domain={[0, 10]} />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="mood" stroke="#8b5cf6" strokeWidth={3} />
-                        <Line type="monotone" dataKey="energy" stroke="#10b981" strokeWidth={2} />
-                        <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={2} />
+                        <YAxis domain={[1, 5]} />
+                        <Tooltip 
+                          formatter={(value: number) => [
+                            emotionTypes.find(t => t.value === value)?.label || '기록 없음',
+                            '감정'
+                          ]}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="value" 
+                          stroke="#8b5cf6" 
+                          strokeWidth={3} 
+                          dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                        />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -188,22 +360,22 @@ export default function EmotionsComponent() {
               </Card>
             </motion.div>
 
-            {/* Mood Distribution */}
+            {/* Emotion Distribution */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
             >
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">기분 분포</CardTitle>
+                  <CardTitle className="text-lg">감정 분포</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={pieChartData}
+                          data={getEmotionDistribution()}
                           cx="50%"
                           cy="50%"
                           innerRadius={40}
@@ -211,7 +383,7 @@ export default function EmotionsComponent() {
                           paddingAngle={5}
                           dataKey="value"
                         >
-                          {pieChartData.map((entry, index) => (
+                          {getEmotionDistribution().map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -220,11 +392,11 @@ export default function EmotionsComponent() {
                     </ResponsiveContainer>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-4">
-                    {pieChartData.map((item) => (
+                    {getEmotionDistribution().map((item) => (
                       <div key={item.name} className="flex items-center gap-2 text-sm">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
                         <span className="text-gray-600">{item.name}</span>
-                        <span className="font-medium">{item.value}%</span>
+                        <span className="font-medium">{item.value}회</span>
                       </div>
                     ))}
                   </div>
@@ -232,119 +404,7 @@ export default function EmotionsComponent() {
               </Card>
             </motion.div>
 
-            {/* Quick Mood Check */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">빠른 기분 체크</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-5 gap-3">
-                    {moodTypes.map((mood) => (
-                      <motion.button
-                        key={mood.id}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedMood(mood.id)}
-                        className={`p-3 rounded-lg text-center transition-all ${
-                          selectedMood === mood.id
-                            ? 'bg-purple-100 border-2 border-purple-500'
-                            : 'bg-gray-50 hover:bg-gray-100'
-                        }`}
-                      >
-                        <mood.icon className={`w-8 h-8 mx-auto mb-2 ${mood.color}`} />
-                        <div className="text-xs font-medium text-gray-700">{mood.label}</div>
-                        <div className="text-xs text-gray-500">{mood.score}회</div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </>
-        )}
-
-        {activeTab === 'questions' && (
-          <>
-            {/* Daily Questions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">오늘의 질문</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {dailyQuestions.map((question, index) => (
-                    <motion.div
-                      key={question.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="space-y-3"
-                    >
-                      <h4 className="font-medium text-gray-900">{question.question}</h4>
-                      <div className="grid grid-cols-5 gap-2">
-                        {question.options.map((option, optIndex) => (
-                          <button
-                            key={optIndex}
-                            className="p-2 text-xs bg-gray-100 hover:bg-purple-100 rounded-md transition-colors"
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  ))}
-                  <Button className="w-full bg-purple-500 hover:bg-purple-600">
-                    답변 저장하기
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </>
-        )}
-
-        {activeTab === 'insights' && (
-          <>
-            {/* Insights */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="space-y-4"
-            >
-              {insights.map((insight, index) => (
-                <motion.div
-                  key={insight.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                >
-                  <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0`}>
-                          <insight.icon className={`w-5 h-5 ${insight.color}`} />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-1">{insight.title}</h4>
-                          <p className="text-sm text-gray-600">{insight.description}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Mood Trends */}
+            {/* Statistics */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -352,98 +412,139 @@ export default function EmotionsComponent() {
             >
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">기분 트렌드</CardTitle>
+                  <CardTitle className="text-lg">통계</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={moodData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="day" />
-                        <YAxis domain={[0, 10]} />
-                        <Tooltip />
-                        <Bar dataKey="mood" fill="#8b5cf6" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{emotionEntries.length}</div>
+                      <div className="text-sm text-gray-600">총 기록 수</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {(emotionEntries.reduce((sum, entry) => {
+                          const emotionValue = emotionTypes.find(t => t.id === entry.emotion)?.value || 3;
+                          return sum + emotionValue;
+                        }, 0) / Math.max(emotionEntries.length, 1)).toFixed(1)}
+                      </div>
+                      <div className="text-sm text-gray-600">평균 감정</div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           </>
         )}
-
-        {activeTab === 'history' && (
-          <>
-            {/* Mood History */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">기분 기록</h3>
-                <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
-                  <Plus className="w-4 h-4 mr-2" />
-                  기록 추가
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {moodHistory.map((record, index) => (
-                  <motion.div
-                    key={record.date}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                  >
-                    <Card className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                <span className="text-sm font-bold text-purple-600">{record.mood}</span>
-                              </div>
-                              <div>
-                                <div className="font-medium text-gray-900">{record.date}</div>
-                                <div className="text-sm text-gray-600">{record.note}</div>
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {record.activities.map((activity, actIndex) => (
-                                <span
-                                  key={actIndex}
-                                  className="px-2 py-1 bg-gray-100 text-xs text-gray-600 rounded-full"
-                                >
-                                  {activity}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
       </div>
 
-      {/* Floating Action Button */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.8, type: "spring" }}
-        className="fixed bottom-24 right-6"
-      >
-        <Button 
-          size="lg" 
-          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </motion.div>
+      {/* Emotion Recording Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold">
+                    {selectedDate && new Date(selectedDate).toLocaleDateString('ko-KR', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </h3>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="p-1 hover:bg-gray-100 rounded-full"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Emotion Selection */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">오늘의 기분을 선택해주세요</Label>
+                    <div className="grid grid-cols-5 gap-3">
+                      {emotionTypes.map((emotion) => (
+                        <motion.button
+                          key={emotion.id}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setSelectedEmotion(emotion.id)}
+                          className={`p-3 rounded-lg text-center transition-all ${
+                            selectedEmotion === emotion.id
+                              ? 'bg-purple-100 border-2 border-purple-500'
+                              : 'bg-gray-50 hover:bg-gray-100'
+                          }`}
+                        >
+                          <EmotionIcon type={emotion.id} size="md" />
+                          <div className="text-xs font-medium text-gray-700 mt-2">{emotion.label}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Diary */}
+                  <div>
+                    <Label htmlFor="diary" className="text-sm font-medium mb-2 block">
+                      오늘의 일기
+                    </Label>
+                    <textarea
+                      id="diary"
+                      value={diaryText}
+                      onChange={(e) => setDiaryText(e.target.value)}
+                      placeholder="오늘 하루는 어땠나요? 자유롭게 적어보세요..."
+                      className="w-full h-24 p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Daily Question */}
+                  <div>
+                    <Label htmlFor="daily-answer" className="text-sm font-medium mb-2 block">
+                      {dailyQuestion}
+                    </Label>
+                    <Input
+                      id="daily-answer"
+                      value={dailyAnswer}
+                      onChange={(e) => setDailyAnswer(e.target.value)}
+                      placeholder="답변을 입력해주세요..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1"
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    onClick={handleSaveEntry}
+                    disabled={!selectedEmotion}
+                    className="flex-1 bg-purple-500 hover:bg-purple-600"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    저장
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
