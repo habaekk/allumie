@@ -18,11 +18,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 // 감정 아이콘 컴포넌트 (창의적 디자인)
-const EmotionIcon = ({ type, size = 'md' }: { type: string; size?: 'sm' | 'md' | 'lg' }) => {
+const EmotionIcon = ({ type, size = 'md' }: { type: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) => {
   const sizeClasses = {
-    sm: 'w-6 h-6',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12'
+    sm: 'w-8 h-8',
+    md: 'w-10 h-10',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16'
   };
 
   const emotions = {
@@ -101,11 +102,6 @@ export default function EmotionsComponent() {
   const [selectedEmotion, setSelectedEmotion] = useState('');
   const [diaryText, setDiaryText] = useState('');
   const [dailyAnswer, setDailyAnswer] = useState('');
-  const [emotionEntries, setEmotionEntries] = useState<EmotionEntry[]>([
-    { date: '2024-01-15', emotion: 'excellent', diary: '오늘은 정말 좋은 하루였다!', dailyAnswer: '친구들과 즐거운 시간을 보냈어요.' },
-    { date: '2024-01-14', emotion: 'good', diary: '평범하지만 괜찮은 하루', dailyAnswer: '업무가 순조롭게 진행되었어요.' },
-    { date: '2024-01-12', emotion: 'bad', diary: '조금 힘든 하루였다', dailyAnswer: '스트레스가 많았어요.' }
-  ]);
 
   const emotionTypes = [
     { id: 'excellent', label: '최고', value: 5, color: 'from-yellow-300 to-orange-400' },
@@ -126,15 +122,219 @@ export default function EmotionsComponent() {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
+  // 이전/현재/다음 달 생성
+  const getPrevMonth = () => {
+    return new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+  };
+
+  const getNextMonth = () => {
+    return new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+  };
+
   const formatDate = (year: number, month: number, day: number) => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
+
+  // 오늘 날짜 기준으로 최근 1주일 예시 데이터 생성
+  const generateRecentWeekData = () => {
+    const today = new Date();
+    const data: EmotionEntry[] = [];
+    
+    const sampleEmotions = ['excellent', 'good', 'neutral', 'bad', 'good', 'excellent', 'neutral'];
+    const sampleDiaries = [
+      '오늘은 정말 완벽한 하루였다! 모든 일이 순조롭게 진행되었고 기분이 너무 좋았어.',
+      '평범하지만 괜찮은 하루. 업무도 적당히 잘 풀렸고 저녁에는 좋아하는 드라마를 봤다.',
+      '그냥 평범한 하루. 특별할 것도 나쁠 것도 없었던 보통의 일상.',
+      '좀 힘든 하루였다. 일이 생각보다 복잡했고 스트레스가 쌓였다.',
+      '친구들과 만나서 즐거운 시간을 보냈다. 오랜만에 웃으면서 대화할 수 있어서 좋았어.',
+      '새로운 도전을 시작했다! 설레고 기대되는 하루였다.',
+      '조용히 혼자만의 시간을 가졌다. 책도 읽고 음악도 들으며 여유로웠어.'
+    ];
+    const sampleAnswers = [
+      '프로젝트가 성공적으로 마무리된 순간',
+      '동료와 함께 점심을 먹으며 나눈 대화',
+      '평소와 다름없이 흘러간 하루',
+      '예상보다 오래 걸린 업무 처리',
+      '친구들과 함께 웃으며 보낸 저녁 시간',
+      '새로운 목표를 세우고 계획을 짠 시간',
+      '혼자 카페에서 책을 읽던 고요한 오후'
+    ];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i - 1);
+      const dateStr = formatDate(date.getFullYear(), date.getMonth(), date.getDate());
+      
+      data.push({
+        date: dateStr,
+        emotion: sampleEmotions[6 - i],
+        diary: sampleDiaries[6 - i],
+        dailyAnswer: sampleAnswers[6 - i]
+      });
+    }
+    
+    return data;
+  };
+
+  const [emotionEntries, setEmotionEntries] = useState<EmotionEntry[]>(generateRecentWeekData());
 
   const getEmotionForDate = (dateStr: string) => {
     return emotionEntries.find(entry => entry.date === dateStr);
   };
 
+  const isToday = (year: number, month: number, day: number) => {
+    const today = new Date();
+    return (
+      day === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear()
+    );
+  };
+
+  // 스와이프 및 드래그 관련 state
+  const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // 터치 이벤트 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const x = e.touches[0].clientX;
+    setStartX(x);
+    setCurrentX(x);
+    setIsDragging(true);
+    setDragOffset(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const x = e.touches[0].clientX;
+    setCurrentX(x);
+    const offset = x - startX;
+    const maxOffset = window.innerWidth * 0.3; // 화면 너비의 30%로 제한
+    setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, offset)));
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const endX = e.changedTouches[0].clientX;
+    const diffX = startX - endX;
+    
+    setIsDragging(false);
+    
+    // 50px 이상 스와이프시 월 변경
+    if (Math.abs(diffX) > 50) {
+      setIsTransitioning(true);
+      
+      if (diffX > 0) {
+        // 왼쪽 스와이프 - 다음 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+        const containerWidth = window.innerWidth;
+        setDragOffset(-containerWidth / 3);
+        setTimeout(() => {
+          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+          setDragOffset(0);
+          setIsTransitioning(false);
+        }, 300);
+      } else {
+        // 오른쪽 스와이프 - 이전 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+        const containerWidth = window.innerWidth;
+        setDragOffset(containerWidth / 3);
+        setTimeout(() => {
+          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+          setDragOffset(0);
+          setIsTransitioning(false);
+        }, 300);
+      }
+    } else {
+      // 원위치로 복귀
+      setIsTransitioning(true);
+      setDragOffset(0);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+    }
+  };
+
+  // 마우스 이벤트 핸들러
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const x = e.clientX;
+    setStartX(x);
+    setCurrentX(x);
+    setIsDragging(true);
+    setDragOffset(0);
+    e.preventDefault(); // 텍스트 선택 방지
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const x = e.clientX;
+    setCurrentX(x);
+    const offset = x - startX;
+    const maxOffset = window.innerWidth * 0.3; // 화면 너비의 30%로 제한
+    setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, offset)));
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const endX = e.clientX;
+    const diffX = startX - endX;
+    
+    setIsDragging(false);
+    
+    // 50px 이상 드래그시 월 변경
+    if (Math.abs(diffX) > 50) {
+      setIsTransitioning(true);
+      
+      if (diffX > 0) {
+        // 왼쪽 드래그 - 다음 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+        const containerWidth = window.innerWidth;
+        setDragOffset(-containerWidth / 3);
+        setTimeout(() => {
+          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+          setDragOffset(0);
+          setIsTransitioning(false);
+        }, 300);
+      } else {
+        // 오른쪽 드래그 - 이전 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+        const containerWidth = window.innerWidth;
+        setDragOffset(containerWidth / 3);
+        setTimeout(() => {
+          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+          setDragOffset(0);
+          setIsTransitioning(false);
+        }, 300);
+      }
+    } else {
+      // 원위치로 복귀
+      setIsTransitioning(true);
+      setDragOffset(0);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+    }
+  };
+
+  // 마우스가 달력 영역을 벗어났을 때 드래그 종료
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setIsTransitioning(true);
+      setDragOffset(0);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+    }
+  };
+
   const handleDateClick = (day: number) => {
+    // 드래그 중이거나 전환 중이면 클릭 무시
+    if (isDragging || isTransitioning || Math.abs(dragOffset) > 5) return;
+    
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day);
     setSelectedDate(dateStr);
     
@@ -206,15 +406,77 @@ export default function EmotionsComponent() {
     return distribution.filter(item => item.value > 0);
   };
 
+  // 개별 달력 렌더링 함수
+  const renderCalendarMonth = (date: Date, isCurrentMonth: boolean = false) => {
+    const daysInMonth = getDaysInMonth(date);
+    const firstDay = getFirstDayOfMonth(date);
+    
+    return (
+      <div className={`grid grid-cols-7 gap-1 ${!isCurrentMonth ? 'opacity-30' : ''}`}>
+        {/* Empty cells for days before month starts */}
+        {Array.from({ length: firstDay }, (_, i) => (
+          <div key={`empty-${i}`} className="h-12"></div>
+        ))}
+        
+        {/* Calendar days */}
+        {Array.from({ length: daysInMonth }, (_, i) => {
+          const day = i + 1;
+          const dateStr = formatDate(date.getFullYear(), date.getMonth(), day);
+          const emotion = getEmotionForDate(dateStr);
+          // 오늘 날짜 체크 - 현재 월일 때만 체크하도록 조건 추가
+          const todayFlag = isCurrentMonth && isToday(date.getFullYear(), date.getMonth(), day);
+          
+          return (
+            <motion.button
+              key={day}
+              whileHover={isCurrentMonth && !isTransitioning ? { scale: 1.05 } : {}}
+              whileTap={isCurrentMonth && !isTransitioning ? { scale: 0.95 } : {}}
+              onClick={() => isCurrentMonth && !isTransitioning && handleDateClick(day)}
+              disabled={!isCurrentMonth || isTransitioning}
+              className={`h-12 w-12 rounded-full flex items-center justify-center relative transition-all duration-200 ${
+                todayFlag 
+                  ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50' 
+                  : isCurrentMonth ? 'hover:bg-gray-100' : ''
+              }`}
+            >
+              {emotion ? (
+                <div className="relative">
+                  <EmotionIcon type={emotion.emotion} size="md" />
+                  {todayFlag && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-purple-500 rounded-full border-2 border-white"></div>
+                  )}
+                </div>
+              ) : (
+                <div className={`w-8 h-8 border-2 border-dashed rounded-full flex items-center justify-center ${
+                  todayFlag 
+                    ? 'border-purple-400 bg-purple-100' 
+                    : 'border-gray-300'
+                }`}>
+                  <span className={`text-sm font-medium ${
+                    todayFlag 
+                      ? 'text-purple-600' 
+                      : 'text-gray-500'
+                  }`}>
+                    {day}
+                  </span>
+                </div>
+              )}
+            </motion.button>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-sm border-b border-gray-100 px-4 py-4"
+        className="bg-white shadow-sm border-b border-gray-100 px-4 py-2"
       >
-        <h1 className="text-2xl font-bold text-gray-900">감정 일기</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Emotions</h1>
       </motion.div>
 
       {/* Tab Navigation */}
@@ -255,12 +517,22 @@ export default function EmotionsComponent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card>
+                            <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <button
-                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
-                      className="p-2 hover:bg-gray-100 rounded-full"
+                      onClick={() => {
+                        if (isDragging || isTransitioning) return;
+                        setIsTransitioning(true);
+                        const containerWidth = window.innerWidth;
+                        setDragOffset(containerWidth / 3);
+                        setTimeout(() => {
+                          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+                          setDragOffset(0);
+                          setIsTransitioning(false);
+                        }, 300);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -268,14 +540,24 @@ export default function EmotionsComponent() {
                       {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
                     </h2>
                     <button
-                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
-                      className="p-2 hover:bg-gray-100 rounded-full"
+                      onClick={() => {
+                        if (isDragging || isTransitioning) return;
+                        setIsTransitioning(true);
+                        const containerWidth = window.innerWidth;
+                        setDragOffset(-containerWidth / 3);
+                        setTimeout(() => {
+                          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+                          setDragOffset(0);
+                          setIsTransitioning(false);
+                        }, 300);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
 
-                  {/* Calendar Grid */}
+                  {/* Calendar Grid Header */}
                   <div className="grid grid-cols-7 gap-1 mb-2">
                     {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
                       <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
@@ -284,36 +566,47 @@ export default function EmotionsComponent() {
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-7 gap-1">
-                    {/* Empty cells for days before month starts */}
-                    {Array.from({ length: getFirstDayOfMonth(currentDate) }, (_, i) => (
-                      <div key={`empty-${i}`} className="h-10"></div>
-                    ))}
-                    
-                    {/* Calendar days */}
-                    {Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => {
-                      const day = i + 1;
-                      const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day);
-                      const emotion = getEmotionForDate(dateStr);
+                  {/* 연속 달력 컨테이너 */}
+                  <div className="overflow-hidden">
+                    <div 
+                      className={`flex select-none cursor-grab active:cursor-grabbing ${
+                        isTransitioning ? 'transition-transform duration-300 ease-out' : ''
+                      }`}
+                      style={{
+                        transform: `translateX(calc(-33.333% + ${dragOffset}px))`,
+                        opacity: isDragging ? 0.9 : 1,
+                        width: '300%'
+                      }}
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      {/* 이전 달 */}
+                      <div className="w-1/3 px-1">
+                        {renderCalendarMonth(getPrevMonth(), false)}
+                      </div>
                       
-                      return (
-                        <motion.button
-                          key={day}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleDateClick(day)}
-                          className="h-10 w-10 rounded-full flex items-center justify-center relative hover:bg-gray-100 transition-colors"
-                        >
-                          {emotion ? (
-                            <EmotionIcon type={emotion.emotion} size="sm" />
-                          ) : (
-                            <div className="w-6 h-6 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
-                              <span className="text-xs text-gray-500">{day}</span>
-                            </div>
-                          )}
-                        </motion.button>
-                      );
-                    })}
+                      {/* 현재 달 */}
+                      <div className="w-1/3 px-1">
+                        {renderCalendarMonth(currentDate, true)}
+                      </div>
+                      
+                      {/* 다음 달 */}
+                      <div className="w-1/3 px-1">
+                        {renderCalendarMonth(getNextMonth(), false)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 스와이프/드래그 힌트 */}
+                  <div className="mt-4 text-center">
+                    <p className="text-xs text-gray-400">
+                      {isDragging ? '드래그하여 월 이동...' : '스와이프하거나 드래그하여 월 이동'}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -469,11 +762,11 @@ export default function EmotionsComponent() {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                </div>
+                              </div>
 
                 <div className="space-y-6">
                   {/* Emotion Selection */}
-                  <div>
+                              <div>
                     <Label className="text-sm font-medium mb-3 block">오늘의 기분을 선택해주세요</Label>
                     <div className="grid grid-cols-5 gap-3">
                       {emotionTypes.map((emotion) => (
@@ -491,9 +784,9 @@ export default function EmotionsComponent() {
                           <EmotionIcon type={emotion.id} size="md" />
                           <div className="text-xs font-medium text-gray-700 mt-2">{emotion.label}</div>
                         </motion.button>
-                      ))}
-                    </div>
-                  </div>
+                              ))}
+                            </div>
+                          </div>
 
                   {/* Diary */}
                   <div>
@@ -539,7 +832,7 @@ export default function EmotionsComponent() {
                     <Save className="w-4 h-4 mr-2" />
                     저장
                   </Button>
-                </div>
+                        </div>
               </div>
             </motion.div>
           </motion.div>
