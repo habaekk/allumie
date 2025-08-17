@@ -190,149 +190,159 @@ export default function EmotionsComponent() {
     );
   };
 
-  // 스와이프 및 드래그 관련 state
-  const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState(0);
+  // 스와이프 및 드래그 관련 state (주석처리됨)
+  // const [startX, setStartX] = useState(0);
+  // const [currentX, setCurrentX] = useState(0);
+  // const [isDragging, setIsDragging] = useState(false);
+  // const [dragOffset, setDragOffset] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  // const [dragDistance, setDragDistance] = useState(0); // 드래그 거리 추적
 
-  // 터치 이벤트 핸들러
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const x = e.touches[0].clientX;
-    setStartX(x);
-    setCurrentX(x);
-    setIsDragging(true);
-    setDragOffset(0);
-  };
+  // 터치 이벤트 핸들러 (주석처리됨)
+  // const handleTouchStart = (e: React.TouchEvent) => {
+  //   const x = e.touches[0].clientX;
+  //   setStartX(x);
+  //   setCurrentX(x);
+  //   setIsDragging(true);
+  //   setDragOffset(0);
+  //   setDragDistance(0);
+  // };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    
-    const x = e.touches[0].clientX;
-    setCurrentX(x);
-    const offset = x - startX;
-    const maxOffset = window.innerWidth * 0.3; // 화면 너비의 30%로 제한
-    setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, offset)));
-  };
+  // const handleTouchMove = (e: React.TouchEvent) => {
+  //   if (!isDragging) return;
+  //   
+  //   const x = e.touches[0].clientX;
+  //   setCurrentX(x);
+  //   const offset = x - startX;
+  //   const distance = Math.abs(offset);
+  //   setDragDistance(distance);
+  //   
+  //   const maxOffset = window.innerWidth * 0.3; // 화면 너비의 30%로 제한
+  //   setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, offset)));
+  // };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    
-    const endX = e.changedTouches[0].clientX;
-    const diffX = startX - endX;
-    
-    setIsDragging(false);
-    
-    // 50px 이상 스와이프시 월 변경
-    if (Math.abs(diffX) > 50) {
-      setIsTransitioning(true);
-      
-      if (diffX > 0) {
-        // 왼쪽 스와이프 - 다음 달로 슬라이딩 (컨테이너의 1/3 지점까지)
-        const containerWidth = window.innerWidth;
-        setDragOffset(-containerWidth / 3);
-        setTimeout(() => {
-          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-          setDragOffset(0);
-          setIsTransitioning(false);
-        }, 300);
-      } else {
-        // 오른쪽 스와이프 - 이전 달로 슬라이딩 (컨테이너의 1/3 지점까지)
-        const containerWidth = window.innerWidth;
-        setDragOffset(containerWidth / 3);
-        setTimeout(() => {
-          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-          setDragOffset(0);
-          setIsTransitioning(false);
-        }, 300);
-      }
-    } else {
-      // 원위치로 복귀
-      setIsTransitioning(true);
-      setDragOffset(0);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 300);
-    }
-  };
+  // const handleTouchEnd = (e: React.TouchEvent) => {
+  //   if (!isDragging) return;
+  //   
+  //   const endX = e.changedTouches[0].clientX;
+  //   const diffX = startX - endX;
+  //   
+  //   setIsDragging(false);
+  //   
+  //   // 50px 이상 스와이프시 월 변경
+  //   if (Math.abs(diffX) > 50) {
+  //     setIsTransitioning(true);
+  //     
+  //     if (diffX > 0) {
+  //       // 왼쪽 스와이프 - 다음 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+  //       const containerWidth = window.innerWidth;
+  //       setDragOffset(-containerWidth / 3);
+  //       setTimeout(() => {
+  //         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  //         setDragOffset(0);
+  //         setIsTransitioning(false);
+  //       }, 300);
+  //     } else {
+  //       // 오른쪽 스와이프 - 이전 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+  //       const containerWidth = window.innerWidth;
+  //       setDragOffset(containerWidth / 3);
+  //       setTimeout(() => {
+  //         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  //         setDragOffset(0);
+  //         setIsTransitioning(false);
+  //       }, 300);
+  //     }
+  //   } else {
+  //     // 원위치로 복귀
+  //     setIsTransitioning(true);
+  //     setDragOffset(0);
+  //     setTimeout(() => {
+  //       setIsTransitioning(false);
+  //     }, 300);
+  //   }
+  // };
 
-  // 마우스 이벤트 핸들러
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const x = e.clientX;
-    setStartX(x);
-    setCurrentX(x);
-    setIsDragging(true);
-    setDragOffset(0);
-    e.preventDefault(); // 텍스트 선택 방지
-  };
+  // 마우스 이벤트 핸들러 (주석처리됨)
+  // const handleMouseDown = (e: React.MouseEvent) => {
+  //   const x = e.clientX;
+  //   setStartX(x);
+  //   setCurrentX(x);
+  //   setIsDragging(true);
+  //   setDragOffset(0);
+  //   setDragDistance(0);
+  //   e.preventDefault(); // 텍스트 선택 방지
+  // };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    
-    const x = e.clientX;
-    setCurrentX(x);
-    const offset = x - startX;
-    const maxOffset = window.innerWidth * 0.3; // 화면 너비의 30%로 제한
-    setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, offset)));
-  };
+  // const handleMouseMove = (e: React.MouseEvent) => {
+  //   if (!isDragging) return;
+  //   
+  //   const x = e.clientX;
+  //   setCurrentX(x);
+  //   const offset = x - startX;
+  //   const distance = Math.abs(offset);
+  //   setDragDistance(distance);
+  //   
+  //   const maxOffset = window.innerWidth * 0.3; // 화면 너비의 30%로 제한
+  //   setDragOffset(Math.max(-maxOffset, Math.min(maxOffset, offset)));
+  // };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    
-    const endX = e.clientX;
-    const diffX = startX - endX;
-    
-    setIsDragging(false);
-    
-    // 50px 이상 드래그시 월 변경
-    if (Math.abs(diffX) > 50) {
-      setIsTransitioning(true);
-      
-      if (diffX > 0) {
-        // 왼쪽 드래그 - 다음 달로 슬라이딩 (컨테이너의 1/3 지점까지)
-        const containerWidth = window.innerWidth;
-        setDragOffset(-containerWidth / 3);
-        setTimeout(() => {
-          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-          setDragOffset(0);
-          setIsTransitioning(false);
-        }, 300);
-      } else {
-        // 오른쪽 드래그 - 이전 달로 슬라이딩 (컨테이너의 1/3 지점까지)
-        const containerWidth = window.innerWidth;
-        setDragOffset(containerWidth / 3);
-        setTimeout(() => {
-          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-          setDragOffset(0);
-          setIsTransitioning(false);
-        }, 300);
-      }
-    } else {
-      // 원위치로 복귀
-      setIsTransitioning(true);
-      setDragOffset(0);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 300);
-    }
-  };
+  // const handleMouseUp = (e: React.MouseEvent) => {
+  //   if (!isDragging) return;
+  //   
+  //   const endX = e.clientX;
+  //   const diffX = startX - endX;
+  //   
+  //   setIsDragging(false);
+  //   
+  //   // 50px 이상 드래그시 월 변경
+  //   if (Math.abs(diffX) > 50) {
+  //     setIsTransitioning(true);
+  //     
+  //     if (diffX > 0) {
+  //       // 왼쪽 드래그 - 다음 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+  //       const containerWidth = window.innerWidth;
+  //       setDragOffset(-containerWidth / 3);
+  //       setTimeout(() => {
+  //         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  //         setDragOffset(0);
+  //         setIsTransitioning(false);
+  //       }, 300);
+  //     } else {
+  //       // 오른쪽 드래그 - 이전 달로 슬라이딩 (컨테이너의 1/3 지점까지)
+  //       const containerWidth = window.innerWidth;
+  //       setDragOffset(containerWidth / 3);
+  //       setTimeout(() => {
+  //         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  //         setDragOffset(0);
+  //         setIsTransitioning(false);
+  //       }, 300);
+  //     }
+  //   } else {
+  //     // 원위치로 복귀
+  //     setIsTransitioning(true);
+  //     setDragOffset(0);
+  //     setTimeout(() => {
+  //       setIsTransitioning(false);
+  //     }, 300);
+  //   }
+  // };
 
-  // 마우스가 달력 영역을 벗어났을 때 드래그 종료
-  const handleMouseLeave = () => {
-    if (isDragging) {
-      setIsDragging(false);
-      setIsTransitioning(true);
-      setDragOffset(0);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 300);
-    }
-  };
+  // // 마우스가 달력 영역을 벗어났을 때 드래그 종료
+  // const handleMouseLeave = () => {
+  //   if (isDragging) {
+  //     setIsDragging(false);
+  //     setIsTransitioning(true);
+  //     setDragOffset(0);
+  //     setDragDistance(0);
+  //     setTimeout(() => {
+  //       setIsTransitioning(false);
+  //     }, 300);
+  //   }
+  // };
 
   const handleDateClick = (day: number) => {
-    // 드래그 중이거나 전환 중이면 클릭 무시
-    if (isDragging || isTransitioning || Math.abs(dragOffset) > 5) return;
+    // 전환 중이면 클릭 무시
+    if (isTransitioning) return;
     
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day);
     setSelectedDate(dateStr);
@@ -430,7 +440,11 @@ export default function EmotionsComponent() {
               key={day}
               whileHover={isCurrentMonth && !isTransitioning ? { scale: 1.05 } : {}}
               whileTap={isCurrentMonth && !isTransitioning ? { scale: 0.95 } : {}}
-              onClick={() => isCurrentMonth && !isTransitioning && handleDateClick(day)}
+              onClick={() => {
+                if (isCurrentMonth && !isTransitioning) {
+                  handleDateClick(day);
+                }
+              }}
               disabled={!isCurrentMonth || isTransitioning}
               className={`h-12 w-12 rounded-full flex items-center justify-center relative transition-all duration-200 ${
                 todayFlag 
@@ -521,15 +535,8 @@ export default function EmotionsComponent() {
                   <div className="flex items-center justify-between mb-4">
                     <button
                       onClick={() => {
-                        if (isDragging || isTransitioning) return;
-                        setIsTransitioning(true);
-                        const containerWidth = window.innerWidth;
-                        setDragOffset(containerWidth / 3);
-                        setTimeout(() => {
-                          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-                          setDragOffset(0);
-                          setIsTransitioning(false);
-                        }, 300);
+                        if (isTransitioning) return;
+                        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
                       }}
                       className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
@@ -540,15 +547,8 @@ export default function EmotionsComponent() {
                     </h2>
                     <button
                       onClick={() => {
-                        if (isDragging || isTransitioning) return;
-                        setIsTransitioning(true);
-                        const containerWidth = window.innerWidth;
-                        setDragOffset(-containerWidth / 3);
-                        setTimeout(() => {
-                          setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-                          setDragOffset(0);
-                          setIsTransitioning(false);
-                        }, 300);
+                        if (isTransitioning) return;
+                        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
                       }}
                       className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
@@ -565,24 +565,14 @@ export default function EmotionsComponent() {
                     ))}
                   </div>
 
-                  {/* 연속 달력 컨테이너 */}
+                  {/* 달력 컨테이너 (스와이프 기능 제거됨) */}
                   <div className="overflow-hidden">
                     <div 
-                      className={`flex select-none cursor-grab active:cursor-grabbing ${
-                        isTransitioning ? 'transition-transform duration-300 ease-out' : ''
-                      }`}
+                      className="flex select-none"
                       style={{
-                        transform: `translateX(calc(-33.333% + ${dragOffset}px))`,
-                        opacity: isDragging ? 0.9 : 1,
+                        transform: `translateX(-33.333%)`,
                         width: '300%'
                       }}
-                      onTouchStart={handleTouchStart}
-                      onTouchMove={handleTouchMove}
-                      onTouchEnd={handleTouchEnd}
-                      onMouseDown={handleMouseDown}
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseLeave}
                     >
                       {/* 이전 달 */}
                       <div className="w-1/3 px-1">
@@ -599,13 +589,6 @@ export default function EmotionsComponent() {
                         {renderCalendarMonth(getNextMonth(), false)}
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* 스와이프/드래그 힌트 */}
-                  <div className="mt-4 text-center">
-                    <p className="text-xs text-gray-400">
-                      {isDragging ? '드래그하여 월 이동...' : '스와이프하거나 드래그하여 월 이동'}
-                    </p>
                   </div>
                 </CardContent>
               </Card>
