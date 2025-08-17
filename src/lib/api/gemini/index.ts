@@ -9,12 +9,13 @@ export {
 } from './prompts';
 
 // 싱글톤 인스턴스를 위한 팩토리 함수
-let geminiClientInstance: any = null;
+import GeminiClientClass from './client';
+
+let geminiClientInstance: GeminiClientClass | null = null;
 
 export function getGeminiClient() {
   if (!geminiClientInstance) {
-    const GeminiClient = require('./client').default;
-    geminiClientInstance = new GeminiClient();
+    geminiClientInstance = new GeminiClientClass();
   }
   return geminiClientInstance;
 }

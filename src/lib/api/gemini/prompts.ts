@@ -69,13 +69,13 @@ export const PROMPT_TEMPLATES = {
 // 프롬프트 생성 헬퍼 함수
 export function createHealthPrompt(
   userInput: string,
-  healthData?: Record<string, any>,
+  healthData?: Record<string, unknown>,
   template?: keyof typeof PROMPT_TEMPLATES
 ): string {
-  let systemPrompt = HEALTH_ASSISTANT_PROMPT;
+  let basePrompt = HEALTH_ASSISTANT_PROMPT;
   
   if (template && PROMPT_TEMPLATES[template]) {
-    systemPrompt += '\n\n' + PROMPT_TEMPLATES[template];
+    basePrompt += '\n\n' + PROMPT_TEMPLATES[template];
   }
 
   let prompt = userInput;
@@ -100,5 +100,5 @@ export interface HealthData {
   mood?: string;
   lastMeal?: string;
   lastMedication?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }

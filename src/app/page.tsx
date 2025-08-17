@@ -9,10 +9,8 @@ import {
   Home,
   Brain,
   MessageCircle,
-  Plus,
   BarChart3
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import EmotionsComponent from '@/components/EmotionsComponent';
 import HealthComponent from '@/components/HealthComponent';

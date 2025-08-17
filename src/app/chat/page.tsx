@@ -8,7 +8,6 @@ import {
   Bot,
   User,
   ArrowLeft,
-  Plus,
   Brain,
   Activity,
   UtensilsCrossed,
@@ -29,12 +28,7 @@ interface Message {
   data?: Record<string, unknown>;
 }
 
-interface QuickAction {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  textColor: string;
-}
+
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
@@ -77,12 +71,7 @@ export default function ChatPage() {
     lastMedication: '1시간 전'
   };
 
-  const quickActions: QuickAction[] = [
-    { title: '건강 요약', icon: TrendingUp, color: 'bg-blue-100', textColor: 'text-blue-600' },
-    { title: '식단 분석', icon: UtensilsCrossed, color: 'bg-orange-100', textColor: 'text-orange-600' },
-    { title: '운동 추천', icon: Activity, color: 'bg-green-100', textColor: 'text-green-600' },
-    { title: '감정 분석', icon: Brain, color: 'bg-purple-100', textColor: 'text-purple-600' },
-  ];
+
 
   const suggestedQuestions = [
     "오늘의 건강 상태는 어때요?",
@@ -165,16 +154,6 @@ export default function ChatPage() {
 
 
 
-  const handleQuickAction = (action: string) => {
-    const actionMessages: { [key: string]: string } = {
-      '건강 요약': '오늘의 건강 상태를 요약해드릴게요!',
-      '식단 분석': '현재 식단을 분석하고 개선점을 찾아보겠습니다.',
-      '운동 추천': '당신에게 맞는 운동을 추천해드릴게요!',
-      '감정 분석': '최근 감정 상태를 분석해보겠습니다.'
-    };
-
-    setInputValue(actionMessages[action] || action);
-  };
 
   const handleSuggestedQuestion = (question: string) => {
     setInputValue(question);
@@ -274,7 +253,7 @@ export default function ChatPage() {
               key={index}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
+              onClick={(_e) => {
                 if (!isDragging) {
                   handleSuggestedQuestion(question);
                 }

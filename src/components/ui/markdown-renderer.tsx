@@ -49,7 +49,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         ),
         
         // 코드
-        code: ({ inline, children }) => 
+        code: ({ inline, children }: { inline?: boolean; children?: React.ReactNode }) => 
           inline ? (
             <code className="bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-xs font-mono">
               {children}
